@@ -1,6 +1,8 @@
 # Configure the AWS Provider
 provider "aws" {
-    region = var.aws.region
+    region = var.aws_cli.region
+    access_key = var.aws_cli.access_key
+    secret_key = var.aws_cli.secret_key
 }
 
 # Configure the Microsoft Azure Provider

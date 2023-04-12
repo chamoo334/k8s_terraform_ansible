@@ -5,6 +5,7 @@ cloud_provider = {
 }
 aws_cli = {
     "region" = ""
-    "access_key_id" = ""
-    "secret_access_key" = ""
+    "access_key" = ""
+    "secret_key" = ""
 }
+instance_type = "t3.mdemium"

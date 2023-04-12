@@ -26,4 +26,4 @@ override.tf.json
 *tfplan*
 
 # Miscellaneous files
-temp.txt
+*.txt

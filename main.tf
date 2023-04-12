@@ -1,6 +1,8 @@
 module "aws_k8s" {
     count = var.cloud_provider.aws ? 1 : 0
     source = "./modules/aws"
+    ami_id = var.ami_id
+    instance_type = var.instance_type
 }
 
 module "azure_k8s" {
