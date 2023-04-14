@@ -2,11 +2,27 @@
 Kubernetes Cluster bootstrapped via terraform script in AWS, Azure, and GCP. <br>
 **The resource tls_private_key is stored unencrypted in state file.**
 
+## Requirements
+- Terraform CLI
+- Ansible CLI
+- Preferred Cloud
+
 ## Resources Created
 
 ### AWS
-- key pair (tls_private_key)
-- 3 EC2 instances
+- [key pair](./modules/aws/keypair.tf)
+- [security groups](./modules/aws/security_group.tf)
+  - k8s controller security group
+  - worker security groups
+- EC2 instances
+  - default is 3
+    - controller
+    - worker1
+    - worker2
+  - output aws_ssh_commands contains ssh command for each instance
+- files
+  - generated private key will be saved as ./scripts/{var.key_pair_name}.pem
+  - private ips for provisioned instances can be found in ./scripts/nodes.txt
 
 ### Azure
 - 
