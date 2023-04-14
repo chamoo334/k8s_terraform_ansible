@@ -3,6 +3,7 @@ module "aws_k8s" {
     source = "./modules/aws"
     ami_id = var.ami_id
     instance_type = var.instance_type
+    key_pair_name = var.key_pair_name
 }
 
 module "azure_k8s" {

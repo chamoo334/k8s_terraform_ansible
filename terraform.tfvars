@@ -8,4 +8,6 @@ aws_cli = {
     "access_key" = ""
     "secret_key" = ""
 }
-instance_type = "t3.mdemium"
+ami_id = "ami-06e46074ae430fba6"
+instance_type = ""
+key_pair_name = ""

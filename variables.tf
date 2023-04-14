@@ -12,12 +12,17 @@ variable "aws_cli" {
 }
 
 variable "ami_id" {
-    description = "ID of AMI to use. Default is Ubuntu 20.04"
+    description = "ID of AMI to use. Default is AL2"
     type = string
-    default = "ami-0aa2b7722dc1b5612" 
+    default = "ami-06e46074ae430fba6" 
 }
 
 variable "instance_type" {
     description = "Instance type to use for all instances."
+    type = string
+}
+
+variable "key_pair_name" {
+    description = "Preferred name for generated key pair."
     type = string
 }

@@ -1,10 +1,11 @@
 # bootstrap_k8s_terraform
-Kubernetes Cluster bootstrapped via terraform script in AWS, Azure, and GCP.
+Kubernetes Cluster bootstrapped via terraform script in AWS, Azure, and GCP. <br>
+**The resource tls_private_key is stored unencrypted in state file.**
 
 ## Resources Created
 
 ### AWS
-- 
+- key pair (tls_private_key)
 - 3 EC2 instances
 
 ### Azure
