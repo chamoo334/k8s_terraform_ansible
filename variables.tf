@@ -4,6 +4,11 @@ variable "cloud_provider" {
     type = map(bool)
 }
 
+variable "windows_os" {
+    description = "Declare whether to run Unix or Windows local-exec"
+    type = bool
+}
+
 # AWS Configuration
 variable "aws_cli" {
     description = "Environment variables to configure the AWS CLI and AWS region"

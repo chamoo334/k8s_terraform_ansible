@@ -1,5 +1,6 @@
 #!/bin/bash
-
+controller=false
+add_node_cmmnd=""
 
 all_nodes () {
 # update, disable swap and SELinux 
@@ -8,8 +9,6 @@ sudo swapoff -a
 sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 
 # configure networking
-sudo cat <<EOF | sudo tee /etc/hosts
-EOF
 
 sudo yum install -y iproute-tc
 
@@ -59,9 +58,21 @@ sudo systemctl start kubelet
 
 controller (){
 # create cluster
-sudo kubeadm init --pod-network-cidr=192.168.10.0/16
+init_cluster=$(sudo kubeadm init --pod-network-cidr=192.168.10.0/16)
 
-# find and copy token command
+SAVEIFS=$IFS   # Save current IFS (Internal Field Separator)
+IFS=$'\n'      # Change IFS to newline char
+init_output=( $init_cluster )
+IFS=$SAVEIFS
+
+for (( i=0; i<${#init_output[@]}; i++ ))
+do
+    if [[ "${init_output[$i]}" == *"mkdir"* || "${init_output[$i]}" == *"sudo"* ]]; then
+        eval "${init_output[$i]}"
+    elif [[ "${init_output[$i]}" == *"kubeadm"* ]]; then
+        add_node_cmmnd="sudo ${test3[$i]}"
+    fi
+done
 
 # configure .kube
 mkdir -p $HOME/.kube
@@ -73,15 +84,19 @@ kubectl taint nodes --all node-role.kubernetes.io/master-
 
 # install Calico pod network add-on
 kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml
-# kubectl get pods -n kube-system
-# kubectl get pods --all-namespaces
+kubectl get pods -n kube-system
+kubectl get pods --all-namespaces
 }
 
 worker (){
 ## add node to cluster
-sudo kubeadm join 10.128.15.228:6443 --token cqb8vy.iicmmqrb1m8u9cob --discovery-token-ca-cert-hash sha256:79748a56f603e6cc57f67bf90b7db5aebe090107d540d6cc8a8f65b785de7543
+eval "${add_node_cmmnd}"
 }
 
+all_nodes
 
-# check nodes on controller
-# kubectl get nodes
+if [ $controller = true ]; then
+controller
+else
+worker
+fi

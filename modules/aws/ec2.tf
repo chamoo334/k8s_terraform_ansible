@@ -12,11 +12,20 @@ resource "aws_instance" "k8s" {
     }
 }
 
-resource "local_file" "k8s3" {
-    filename = "./scripts/nodes.txt"
+resource "local_file" "k8s_private_ips" {
+    filename = "./scripts/aws/hosts.txt"
     content = <<-EOT
-        %{ for node in local.instances ~}
+sudo cat <<EOF | sudo tee /etc/hosts
+%{ for node in local.instances ~}
 ${aws_instance.k8s["${node}"].private_ip} ${var.ec2_names["${node}"]}
-        %{ endfor ~}
-    EOT
+%{ endfor ~}
+EOF
+EOT
+}
+
+resource "null_resource" "k8s_script_unix2" {
+    provisioner "local-exec" {
+        command = "sed -i '' '/# configure network/r ./scripts/aws/hosts.txt' ./scripts/aws/all_nodes.sh"
+    }
+    depends_on = [local_file.k8s]
 }
