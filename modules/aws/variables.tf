@@ -37,29 +37,14 @@ variable "sg_k8s_controller_ingress" {
         cidr_blocks = list(string)
         description = string
     }))
-    default = {
-        "22" = {
-            port = 22
-            description = "SSH access"
-            protocol = "tcp"
-            cidr_blocks = ["0.0.0.0/0"]
-        }
-        "80" = {
-            port = 80
-            description = "HTTP access"
-            protocol = "tcp"
-            cidr_blocks = ["0.0.0.0/0"]
-        }
-        "443" = {
-            port = 443
-            description = "HTTPS access"
-            protocol = "tcp"
-            cidr_blocks = ["0.0.0.0/0"]
-        }
-        # "22" = {
-        #     description = ""
-        #     protocol = "tcp"
-        #     cidr_blocks = ["0.0.0.0/0"]
-        # }
-    }
+}
+
+variable "sg_k8s_worker_ingress" {
+    description = "Security group rules for cluster controller"
+    type = map(object({
+        port = number
+        protocol = string
+        cidr_blocks = list(string)
+        description = string
+    }))
 }
