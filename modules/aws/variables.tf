@@ -23,16 +23,16 @@ variable "key_pair_name" {
     type = string
 }
 
-variable "sg_name" {
+variable "sg_name_prefix" {
     description = "Preferred name of generated security group."
     type = string
-    default = "k8s"
 }
 
 variable "sg_k8s_controller_ingress" {
     description = "Security group rules for cluster controller"
     type = map(object({
-        port = number
+        start_port = number
+        end_port = number
         protocol = string
         cidr_blocks = list(string)
         description = string
@@ -42,7 +42,8 @@ variable "sg_k8s_controller_ingress" {
 variable "sg_k8s_worker_ingress" {
     description = "Security group rules for cluster controller"
     type = map(object({
-        port = number
+        start_port = number
+        end_port = number
         protocol = string
         cidr_blocks = list(string)
         description = string

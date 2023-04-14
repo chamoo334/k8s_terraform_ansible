@@ -4,6 +4,9 @@ module "aws_k8s" {
     ami_id = var.ami_id
     instance_type = var.instance_type
     key_pair_name = var.key_pair_name
+    sg_name_prefix = var.sg_name_prefix
+    sg_k8s_controller_ingress = var.sg_k8s_controller_ingress
+    sg_k8s_worker_ingress = var.sg_k8s_controller_ingress
 }
 
 module "azure_k8s" {
