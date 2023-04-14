@@ -1,7 +1,3 @@
-locals {
-    instances = keys(var.ec2_names)
-}
-
 resource "aws_instance" "k8s" {
     for_each = var.ec2_names
     
