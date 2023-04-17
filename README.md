@@ -33,6 +33,7 @@ Kubernetes Cluster bootstrapped via terraform script in AWS, Azure, and GCP. <br
 - 
 
 ## Deploy
-1. Update terraform.tfvars.
-2. terraform plan -var-file=local.tfvars
-3. terraform apply -auto-approve -var-file=local.tfvars
+1. Download ansible galaxy terraform collection: `mkdir ansible && cd ansible && ansible-galaxy collection install cloud.terraform`
+2. Update terraform.tfvars.
+3. terraform plan -var-file=local.tfvars
+4. terraform apply -auto-approve -var-file=local.tfvars

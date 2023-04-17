@@ -27,5 +27,5 @@ resource "null_resource" "k8s_script_unix2" {
     provisioner "local-exec" {
         command = "sed -i '' '/# configure network/r ./scripts/aws/hosts.txt' ./scripts/aws/all_nodes.sh"
     }
-    depends_on = [local_file.k8s]
+    depends_on = [local_file.k8s_private_ips]
 }

@@ -29,3 +29,4 @@ override.tf.json
 *.txt
 *.pem
 *test*
+scripts/aws/aws.yaml
