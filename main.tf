@@ -1,3 +1,11 @@
+resource "local_file" "inventory" {
+    filename = "./ansible/inventory.yaml"
+    content = <<-EOT
+all:
+  children:
+EOT
+}
+
 module "aws_k8s" {
     count = var.cloud_provider.aws ? 1 : 0
     source = "./modules/aws"
@@ -8,6 +16,8 @@ module "aws_k8s" {
     sg_name_prefix = var.sg_name_prefix
     sg_k8s_controller_ingress = var.sg_k8s_controller_ingress
     sg_k8s_worker_ingress = var.sg_k8s_controller_ingress
+
+    depends_on = [local_file.inventory]
 }
 
 module "azure_k8s" {

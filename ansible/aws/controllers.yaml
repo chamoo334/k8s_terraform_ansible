@@ -1,4 +1,4 @@
-- hosts: controllers
+- hosts: aws_controllers
   gather_facts: no
   remote_user: root
   become: yes
