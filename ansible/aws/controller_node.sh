@@ -1,5 +1,5 @@
 #!/bin/bash
-
+add_node_cmmnd=""
 # create cluster
 init_cluster=$(sudo kubeadm init --pod-network-cidr=192.168.10.0/16)
 
@@ -27,3 +27,4 @@ kubectl get pods -n kube-system
 kubectl get pods --all-namespaces
 # kubectl get nodes
 
+# TODO: echo add_node_cmmnd and save as variable in ansible. Write variable to worker_node.sh as add_node_cmmnd=add_node_cmmnd

@@ -4,9 +4,14 @@ variable "cloud_provider" {
     type = map(bool)
 }
 
-variable "windows_os" {
-    description = "Declare whether to run Unix or Windows local-exec"
-    type = bool
+variable "vm_names" {
+    description = "Hostname and tags of EC2 instances."
+    type = map(string)
+    default = {
+        "controller" = "k8s-controller"
+        "worker1" = "k8s-worker-1"
+        "worker2" = "k8s-worker-2"
+    }
 }
 
 # AWS Configuration
@@ -150,7 +155,7 @@ variable "sg_k8s_worker_ingress" {
         "30000" = {
             start_port = 30000
             end_port = 32767
-            description = "NodePort Services†"
+            description = "NodePort Services"
             protocol = "tcp"
             cidr_blocks = ["0.0.0.0/0"]
         }

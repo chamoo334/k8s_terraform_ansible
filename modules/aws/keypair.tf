@@ -4,7 +4,7 @@ resource "tls_private_key" "k8s" {
 }
 
 resource "local_file" "k8s_key" {
-    filename = "./scripts/aws/${var.key_pair_name}.pem"
+    filename = "./ansible/aws/${var.key_pair_name}.pem"
     file_permission = "0400"
     content = tls_private_key.k8s.private_key_pem
 }

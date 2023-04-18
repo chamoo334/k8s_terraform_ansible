@@ -2,6 +2,7 @@ module "aws_k8s" {
     count = var.cloud_provider.aws ? 1 : 0
     source = "./modules/aws"
     ami_id = var.ami_id
+    ec2_names = var.vm_names
     instance_type = var.instance_type
     key_pair_name = var.key_pair_name
     sg_name_prefix = var.sg_name_prefix

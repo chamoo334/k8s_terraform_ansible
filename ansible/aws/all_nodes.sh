@@ -6,11 +6,6 @@ sudo swapoff -a
 sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 
 # configure networking
-sudo cat <<EOF | sudo tee /etc/hosts
-172.31.85.98 k8s-controller
-172.31.95.204 k8s-worker-1
-172.31.84.251 k8s-worker-2
-EOF
 
 sudo yum install -y iproute-tc
 

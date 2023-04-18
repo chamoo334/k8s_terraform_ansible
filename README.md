@@ -5,24 +5,29 @@ Kubernetes Cluster bootstrapped via terraform script in AWS, Azure, and GCP. <br
 ## Requirements
 - Terraform CLI
 - Ansible CLI
-- Preferred Cloud
+- Preferred Cloud Credentials
 
-## Resources Created
+## Cloud Resources Created
 
 ### AWS
 - [key pair](./modules/aws/keypair.tf)
 - [security groups](./modules/aws/security_group.tf)
-  - k8s controller security group
-  - worker security groups
-- EC2 instances
+  - k8s controller security group (var.sg_k8s_controller_ingress)
+  - worker security groups (var.sg_k8s_worker_ingress)
+- [EC2 instances](./modules/aws/ec2.tf)
   - default is 3
     - controller
     - worker1
     - worker2
   - output aws_ssh_commands contains ssh command for each instance
-- files
-  - generated private key will be saved as ./scripts/{var.key_pair_name}.pem
-  - private ips for provisioned instances can be found in ./scripts/nodes.txt
+  - **NOTE: the first key will be the assumed controller node while creating the inventory file. View code [here](./modules/aws/ansible.tf).**
+- Files for AWS cluster can be found in ./scripts/aws
+  - ./scripts/aws/{var.key_pair_name}.pem
+  - ./scripts/hosts.txt
+  - all_nodes.sh
+    - updated with host private ips from hosts.txt and removed when cluster is deleted
+  - controller_node.sh
+  - worker_node.sh
 
 ### Azure
 - 
@@ -32,8 +37,7 @@ Kubernetes Cluster bootstrapped via terraform script in AWS, Azure, and GCP. <br
 - 
 - 
 
-## Deploy
-1. Download ansible galaxy terraform collection: `mkdir ansible && cd ansible && ansible-galaxy collection install cloud.terraform`
-2. Update terraform.tfvars.
-3. terraform plan -var-file=local.tfvars
-4. terraform apply -auto-approve -var-file=local.tfvars
+## Deployment Instructions
+1. Update terraform.tfvars.
+2. terraform plan
+3. terraform apply -auto-approve
