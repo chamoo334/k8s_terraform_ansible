@@ -1,0 +1,13 @@
+- hosts: workers
+  gather_facts: no
+  remote_user: root
+  become: yes
+  vars:
+    ansible_host_key_checking: false
+  tasks:
+    - name: Echo Hostname
+      shell: 
+        cmd: echo "Testing workers" && hostname
+      register: test_host
+    - debug: var=test_host.stdout_lines
+    # run ./ansible/aws/worker_nodes.sh

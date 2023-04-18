@@ -10,7 +10,4 @@
         cmd: echo "Testing all" && hostname
       register: test_host
     - debug: var=test_host.stdout_lines
-    # run ./scripts/aws/all_nodes.sh
-    # run ./scripts/aws/controller_node.sh
-    # get and write add_node_cmmnd to worker_node.sh
-    # run ./scripts/aws/worker_nodes.sh
+    # run ./ansible/azure/all_nodes.sh

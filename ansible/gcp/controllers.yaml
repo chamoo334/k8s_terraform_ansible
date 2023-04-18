@@ -10,5 +10,5 @@
         cmd: echo "Testing controllers" && hostname
       register: test_host
     - debug: var=test_host.stdout_lines
-    # run ./scripts/aws/controller_node.sh
-    # get and write add_node_cmmnd to worker_node.sh
+    # run ./ansible/gcp/controller_node.sh
+    # get and write add_node_cmmnd to ./ansible/gcp/worker_node.sh

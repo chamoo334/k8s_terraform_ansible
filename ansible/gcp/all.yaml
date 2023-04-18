@@ -1,4 +1,4 @@
-- hosts: workers
+- hosts: all
   gather_facts: no
   remote_user: root
   become: yes
@@ -7,7 +7,7 @@
   tasks:
     - name: Echo Hostname
       shell: 
-        cmd: echo "Testing workers" && hostname
+        cmd: echo "Testing all" && hostname
       register: test_host
     - debug: var=test_host.stdout_lines
-    # run ./scripts/aws/worker_nodes.sh
+    # run ./ansible/gcp/all_nodes.sh
