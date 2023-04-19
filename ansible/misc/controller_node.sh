@@ -16,7 +16,7 @@ do
         eval "${init_output[$i]}"
     elif [[ "${init_output[$i]}" == *"kubeadm"* ]]; then
         # add_node_cmmnd="sudo ${test3[$i]}"
-        add_node_cmmnd="sudo ${init_output[$i]}"
+        add_node_cmmnd=$(echo "sudo ${init_output[$i]}" | sed 's/[\/&]/\\&/g')
     fi
 done
 
@@ -29,4 +29,4 @@ kubectl get pods -n kube-system
 kubectl get pods --all-namespaces
 # kubectl get nodes
 
-# TODO: echo add_node_cmmnd and save as variable in ansible. Write variable to worker_node.sh as add_node_cmmnd=add_node_cmmnd
+sed -i '' "s/add_node_cmmnd=""/add_node_cmmnd=${add_node_cmmnd}/g" ./worker_node.yaml

@@ -19,62 +19,38 @@
         cmd: "{{item}}"
       with_items: "{{cluster_init}}"
       when: "'mkdir' in item or 'sudo' in item"
-    # - name: Find kubeadm join token
-    #   set_fact:
-    #     cluster_join: "{{item}}"
-    #   with_items: "{{cluster_init}}"
-    #   when: "'kubeadm' in item"
-    # - name: Display kubeadm string
-    #   debug:
-    #     var: cluster_join
-    - name: Find element with 'kubeadm' and save as new variable
+    - name: Find kubeadm join command
+      delegate_to: localhost
+      become: no
       set_fact:
-        kubeadm_string: "{{ item }}"
-      with_items: "{{ cluster_init }}"
-      when: "'kubeadm' in item"
+        kubeadm_join_command: "{{ ( item+next_item ) | replace('\\\t','') }}"
+      with_items: "{{cluster_init}}"
+      when: "'kubeadm' in item and arr_index < (cluster_init | length) - 1"
       loop_control:
-        loop_var: item_var
-    - name: Display kubeadm string
-      debug:
-        var: kubeadm_string
-
-    # - name: Register cluster init output variable
-    #   debug: var=init_output
-    # - name: Echo command
-    #   debug:
-    #     msg: "{{ item }}"
-    #   with_items: "{{ init_output.stdout_lines}}"
-    #   when: "'mkdir' in item or 'sudo' in item"
-
-    # - name: Obtain array of cluster init output
-    #   shell: |
-    #     export SAVEIFS=$IFS
-    #     export IFS=$'\n'
-    #     export init_output=( $init_cluster )
-    #     export IFS=$SAVEIFS
-    #     echo $init_output
-    #   register: init_output
-    # - name: Parse and run cluster output commands
-    #   debug:
-    #     msg: "{{ sh }}"
-    # - name: Update kudeadm command to add nodes in workers.yaml
-    #   delegate_to: localhost
-    #   become: no
-    #   replace:
-    #     path: ./workers.yaml
-    #     regexp: '        cmd: '
-    #     replace: '        cmd: "{{ shell_output.stdout_lines[-1] }}"'
-    # - name: Remove Taints
-    #   shell:
-    #     cmd: kubectl taint nodes --all node-role.kubernetes.io/master-
-    # - name: Install Calico pod network add-on
-    #   shell:
-    #     cmd: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml
-    # - name: Get pods
-    #   shell: |
-    #     kubectl get pods -n kube-system
-    #     kubectl get pods --all-namespaces
-    #   register: get_pods
-    # - name: Display results of initial pods
-    #   debug: 
-    #     msg: "{{ get_pods.stdout_lines }}"
+        index_var: arr_index
+      vars:
+        next_item: "{{cluster_init[arr_index + 1]}}"
+    - name: Update kudeadm command to add.yaml
+      delegate_to: localhost
+      become: no
+      replace:
+        path: ./workers.yaml
+        regexp: '        cmd:'
+        replace: '        cmd: "{{kubeadm_join_command}}"'
+    - name: Remove Taints
+      shell:
+        cmd: kubectl taint nodes --all node-role.kubernetes.io/master-
+    - name: Install Calico pod network add-on
+      shell:
+        cmd: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml
+    - name: Get pods
+      shell: |
+        kubectl get pods --all-namespaces
+      register: get_pods
+    - name: Display results of initial pods
+      debug: 
+        msg: "{{ get_pods.stdout_lines }}"
+    - name: Unset cluster_init set_fact
+      set_fact:
+        cluster_init: null
+      when: cluster_init is defined

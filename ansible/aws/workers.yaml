@@ -5,6 +5,8 @@
   vars:
     ansible_host_key_checking: false
   tasks:
-    - name: Echo Hostname
+    - name: Add node to AWS Kubnernetes cluster
       shell: 
-        cmd: 
+        cmd:
+      register: test_host
+    - name: 
