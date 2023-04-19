@@ -6,6 +6,13 @@ all:
 EOT
 }
 
+resource "local_file" "ansible_script" {
+    filename = "./ansible.sh"
+    content = <<-EOT
+#!/bin/bash
+EOT
+}
+
 module "aws_k8s" {
     count = var.cloud_provider.aws ? 1 : 0
     source = "./modules/aws"
@@ -17,15 +24,27 @@ module "aws_k8s" {
     sg_k8s_controller_ingress = var.sg_k8s_controller_ingress
     sg_k8s_worker_ingress = var.sg_k8s_controller_ingress
 
-    depends_on = [local_file.inventory]
+    depends_on = [local_file.inventory, local_file.ansible_script]
 }
 
 module "azure_k8s" {
     count = var.cloud_provider.azure ? 1 : 0
     source = "./modules/azure"
+
+    depends_on = [local_file.inventory, local_file.ansible_script]
 }
 
 module "gcp_k8s" {
     count = var.cloud_provider.gcp ? 1 : 0
     source = "./modules/gcp"
+
+    depends_on = [local_file.inventory, local_file.ansible_script]
 }
+
+# resource "null_resource" "run_playbooks" {
+#     provisioner "local-exec" {
+#         command = "bash ./ansible.sh 2>> errors.log"
+#     }
+
+#     depends_on = [local_file.inventory, local_file.ansible_script, module.aws_k8s, module.azure_k8s, module.gcp_k8s]
+# }

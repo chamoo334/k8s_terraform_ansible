@@ -15,24 +15,24 @@ resource "aws_instance" "k8s" {
 resource "local_file" "k8s_private_ips" {
     filename = "./ansible/aws/hosts.txt"
     content = <<-EOT
-sudo cat <<EOF | sudo tee /etc/hosts
+      shell: |
+        cat <<EOF | sudo tee /etc/hosts
 %{ for node in local.instances ~}
-${aws_instance.k8s["${node}"].private_ip} ${var.ec2_names["${node}"]}
+        ${aws_instance.k8s["${node}"].private_ip} ${var.ec2_names["${node}"]}
 %{ endfor ~}
-EOF
+        EOF
 EOT
 
     provisioner "local-exec" {
-        command = "sed -i '' '/# configure network/r ./ansible/aws/hosts.txt' ./ansible/aws/all_nodes.sh"
+        command = "sed -i '' '/name: Configure hosts/r ./ansible/aws/hosts.txt' ./ansible/aws/all.yaml"
     }
     
     provisioner "local-exec" {
         when = destroy
         command = <<-EOT
-export line1=$(grep -m 1 -n "sudo cat <<EOF | sudo tee /etc/hosts" ./ansible/aws/all_nodes.sh | cut -d: -f1)
-export line2=$(grep -n "EOF" ./ansible/aws/all_nodes.sh | sed -n 2p | cut -d: -f1)
-echo $line1 and $line2
-sed -i '' -e "$line1","$line2"d ./ansible/aws/all_nodes.sh
+export line1=$(($(grep -n "name: Configure hosts" ./ansible/aws/all.yaml | cut -d: -f1)+1))
+export line2=$(($(grep -n "name: Install iproute" ./ansible/aws/all.yaml | cut -d: -f1)-1))
+sed -i '' -e "$line1","$line2"d ./ansible/aws/all.yaml
 unset line1
 unset line2
 EOT

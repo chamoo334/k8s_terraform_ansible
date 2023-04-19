@@ -4,10 +4,87 @@
   become: yes
   vars:
     ansible_host_key_checking: false
+    k8s_version: 1.26 
   tasks:
-    - name: Echo Hostname
+    - name: Update packages
+      yum:
+        name: "*"
+        state: latest
+    - name: Disable SWAP
       shell: 
-        cmd: echo "Testing all" && hostname
-      register: test_host
-    - debug: var=test_host.stdout_lines
-    # run ./ansible/aws/all_nodes.sh
+        cmd: swapoff -a
+    - name: Set SELinux in permissive mode
+      shell:
+        cmd: sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+    - name: Configure hosts
+    - name: Install iproute
+      yum:
+        name: iproute-tc
+        state: installed
+    - name: Kernel modules configuration
+      become: no
+      shell: |
+        cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+        overlay
+        br_netfilter
+        EOF
+    - name: Add overlay
+      modprobe:
+        name: overlay
+        state: present
+    - name: Add br_netfilter
+      modprobe:
+        name: br_netfilter
+        state: present
+    - name: Update systcl params ipv4, ipv6, and iptables
+      become: no
+      shell: |
+        cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+        net.bridge.bridge-nf-call-iptables  = 1
+        net.bridge.bridge-nf-call-ip6tables = 1
+        net.ipv4.ip_forward                 = 1
+        EOF
+    - name: Sysctl without reboot
+      shell: 
+        cmd: sysctl --system
+    - name: Download container runtime interface
+      uri:
+        url: 'https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_8/devel:kubic:libcontainers:stable.repo'
+        method: GET
+        dest: '/etc/yum.repos.d/devel:kubic:libcontainers:stable.repo'
+        follow_redirects: safe
+    - name: Download k8s_version
+      uri:
+        url: 'https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{k8s_version}}/CentOS_8/devel:kubic:libcontainers:stable:cri-o:{{k8s_version}}.repo'
+        method: GET
+        dest: '/etc/yum.repos.d/devel:kubic:libcontainers:stable:cri-o:{{k8s_version}}.repo'
+        follow_redirects: safe
+    - name: Install Container Runtime interface
+      yum:
+        name: cri-o
+        state: installed
+    - name: Enable & Start CRI
+      service:
+        name: crio
+        enabled: yes
+        state: started
+    - name: Add Kubernetes yum repository
+      shell: |
+        cat <<EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
+        [kubernetes]
+        name=Kubernetes
+        baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+        enabled=1
+        gpgcheck=1
+        repo_gpgcheck=1
+        gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+        exclude=kubelet kubeadm kubectl
+        EOF
+    - name: Install kubeadm, kubelet, and kubectl
+      shell: 
+        cmd: yum install -y kubelet-{{k8s_version}}* kubeadm-{{k8s_version}}* kubectl-{{k8s_version}}* --disableexcludes=kubernetes
+    - name: Enable & Start Kubelet
+      service:
+        name: kubelet
+        enabled: yes
+        state: started

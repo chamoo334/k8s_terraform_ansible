@@ -15,7 +15,8 @@ do
     if [[ "${init_output[$i]}" == *"mkdir"* || "${init_output[$i]}" == *"sudo"* ]]; then
         eval "${init_output[$i]}"
     elif [[ "${init_output[$i]}" == *"kubeadm"* ]]; then
-        add_node_cmmnd="sudo ${test3[$i]}"
+        # add_node_cmmnd="sudo ${test3[$i]}"
+        add_node_cmmnd="sudo ${init_output[$i]}"
     fi
 done
 
