@@ -13,7 +13,7 @@ resource "aws_instance" "k8s" {
 }
 
 resource "local_file" "k8s_private_ips" {
-    filename = "./ansible/aws/hosts.txt"
+    filename = "./ansible/misc/aws_hosts.txt"
     content = <<-EOT
       shell: |
         cat <<EOF | sudo tee /etc/hosts
@@ -24,15 +24,15 @@ resource "local_file" "k8s_private_ips" {
 EOT
 
     provisioner "local-exec" {
-        command = "sed -i '' '/name: Configure hosts/r ./ansible/aws/hosts.txt' ./ansible/aws/all.yaml"
+        command = "sed -i '' '/name: Configure hosts/r ./ansible/misc/aws_hosts.txt' ./ansible/roles/aws/tasks/main.yaml"
     }
     
     provisioner "local-exec" {
         when = destroy
         command = <<-EOT
-export line1=$(($(grep -n "name: Configure hosts" ./ansible/aws/all.yaml | cut -d: -f1)+1))
-export line2=$(($(grep -n "name: Install iproute" ./ansible/aws/all.yaml | cut -d: -f1)-1))
-sed -i '' -e "$line1","$line2"d ./ansible/aws/all.yaml
+export line1=$(($(grep -n "name: Configure hosts" ./ansible/roles/aws/tasks/main.yaml | cut -d: -f1)+1))
+export line2=$(($(grep -n "name: Install iproute" ./ansible/roles/aws/tasks/main.yaml | cut -d: -f1)-1))
+sed -i '' -e "$line1","$line2"d ./ansible/roles/aws/tasks/main.yaml
 unset line1
 unset line2
 EOT

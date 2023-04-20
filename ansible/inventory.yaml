@@ -1,0 +1,17 @@
+all:
+  children:
+    aws:
+      vars:
+        ansible_port: 22
+        ansible_user: ec2-user
+        ansible_ssh_private_key_file: ./ansible/aws/k8s.pem
+      hosts:
+        aws_controller:
+          ansible_host: 52.205.114.37
+      children:
+        aws_workers:
+          hosts:
+            aws_worker1:
+              ansible_host: 54.146.149.243
+            aws_worker2:
+              ansible_host: 54.235.54.189

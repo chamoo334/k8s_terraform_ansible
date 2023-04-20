@@ -1,0 +1,6 @@
+- name: Kubernetes cluster install and setup
+  hosts: aws
+  gather_facts: no
+  remote_user: root
+  become: yes
+  roles:

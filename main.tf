@@ -6,12 +6,12 @@ all:
 EOT
 }
 
-resource "local_file" "ansible_script" {
-    filename = "./ansible.sh"
-    content = <<-EOT
-#!/bin/bash
-EOT
-}
+# resource "local_file" "ansible_script" {
+#     filename = "./ansible.sh"
+#     content = <<-EOT
+# #!/bin/bash
+# EOT
+# }
 
 module "aws_k8s" {
     count = var.cloud_provider.aws ? 1 : 0
@@ -41,10 +41,27 @@ module "gcp_k8s" {
     depends_on = [local_file.inventory, local_file.ansible_script]
 }
 
-# resource "null_resource" "run_playbooks" {
-#     provisioner "local-exec" {
-#         command = "bash ./ansible.sh 2>> errors.log"
-#     }
+resource "null_resource" "run_playbooks" {
+    provisioner "local-exec" {
+        command = <<-EOT
+export ANSIBLE_ROLES_PATH=./ansible/roles
+ansible-playbook -i ./ansible/inventory.yaml ./ansible/playbook.yaml
+EOT
+    }
 
-#     depends_on = [local_file.inventory, local_file.ansible_script, module.aws_k8s, module.azure_k8s, module.gcp_k8s]
-# }
+    provisioner "local-exec" {
+        when = destroy
+        command = <<-EOT
+cat > ./ansible/playbook.yaml << EOF
+- name: Kubernetes cluster install and setup
+  hosts: aws
+  gather_facts: no
+  remote_user: root
+  become: yes
+  roles:
+EOF
+EOT
+    }
+
+    depends_on = [local_file.inventory, local_file.ansible_script, module.aws_k8s, module.azure_k8s, module.gcp_k8s]
+}

@@ -17,14 +17,10 @@ cat <<EOF >> ./ansible/inventory.yaml
               ansible_host: ${aws_instance.k8s["${node}"].public_ip}%{ endif }%{ endfor }
 EOF
 
-cat <<EOF >> ./ansible.sh
-
-# AWS Ansible
-ansible-playbook -i ./ansible/inventory.yaml ./ansible/aws/all.yaml
-ansible-playbook -i ./ansible/inventory.yaml ./ansible/aws/controller.yaml
-ansible-playbook -i ./ansible/inventory.yaml ./ansible/aws/workers.yaml
+cat <<EOF >> ./ansible/playbook.yaml
+    - aws
 EOF
 EOT
     }
-    depends_on = [aws_instance.k8s]
+    depends_on = [aws_instance.k8s, local_file.k8s_private_ips]
 }
