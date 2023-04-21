@@ -1,4 +1,5 @@
 # https://kubernetes.io/docs/reference/networking/ports-and-protocols/
+# Kubernetes controller security group
 resource "aws_security_group" "k8s-controller" {
     name = "${var.sg_name_prefix}_controller"
     description = "Security group for Kubernetes controller"
@@ -22,6 +23,7 @@ resource "aws_security_group" "k8s-controller" {
     }
 }
 
+# Kubernetes worker security group
 resource "aws_security_group" "k8s-worker" {
     name = "${var.sg_name_prefix}_worker"
     description = "Security group for Kubernetes controller"

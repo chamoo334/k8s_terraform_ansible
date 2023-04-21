@@ -10,31 +10,33 @@ resource "aws_instance" "k8s" {
     tags = {
         Name = each.value
     }
+
+    provisioner "remote-exec" {
+        inline = ["echo 'connected!'"]
+
+        connection {
+            type        = "ssh"
+            user        = "ec2-user"
+            private_key = file("${local_file.k8s_key.filename}")
+            host        = self.public_ip
+        }
+    }
 }
 
+# store private ips in local file, and update ansible role
 resource "local_file" "k8s_private_ips" {
-    filename = "./ansible/misc/aws_hosts.txt"
+    filename = "./ansible/aws_hosts.txt"
     content = <<-EOT
-      shell: |
-        cat <<EOF | sudo tee /etc/hosts
+  shell: |
+    cat <<EOF | sudo tee /etc/hosts
 %{ for node in local.instances ~}
-        ${aws_instance.k8s["${node}"].private_ip} ${var.ec2_names["${node}"]}
+    ${aws_instance.k8s["${node}"].private_ip} ${var.ec2_names["${node}"]}
 %{ endfor ~}
-        EOF
+    EOF
 EOT
 
     provisioner "local-exec" {
-        command = "sed -i '' '/name: Configure hosts/r ./ansible/misc/aws_hosts.txt' ./ansible/roles/aws/tasks/main.yaml"
+        command = "sed -i '' '/name: Configure hosts/r ./ansible/aws_hosts.txt' ./ansible/roles/aws/tasks/main.yaml"
     }
     
-    provisioner "local-exec" {
-        when = destroy
-        command = <<-EOT
-export line1=$(($(grep -n "name: Configure hosts" ./ansible/roles/aws/tasks/main.yaml | cut -d: -f1)+1))
-export line2=$(($(grep -n "name: Install iproute" ./ansible/roles/aws/tasks/main.yaml | cut -d: -f1)-1))
-sed -i '' -e "$line1","$line2"d ./ansible/roles/aws/tasks/main.yaml
-unset line1
-unset line2
-EOT
-    }
 }

@@ -7,7 +7,11 @@ Kubernetes Cluster bootstrapped via terraform script in AWS, Azure, and GCP. <br
 - Ansible CLI
 - Preferred Cloud Credentials
 
-## Cloud Resources Created
+## Resources Created
+
+### Local files
+- ./ansible/inventory.yaml
+- ./ansible/playbook.yaml
 
 ### AWS
 - [key pair](./modules/aws/keypair.tf)
@@ -21,9 +25,9 @@ Kubernetes Cluster bootstrapped via terraform script in AWS, Azure, and GCP. <br
     - worker2
   - output aws_ssh_commands contains ssh command for each instance
   - **NOTE: the first key will be the assumed controller node while creating the inventory file. View code [here](./modules/aws/ansible.tf).**
-- Files for AWS cluster can be found in ./scripts/aws
-  - ./scripts/aws/{var.key_pair_name}.pem
-  - ./scripts/hosts.txt
+- Terraform creates and destroys files for use with Ansible. *These files will be destroyed along with other Terraform resources.*
+  - ./ansible/aws_{var.key_pair_name}.pem
+  - ./ansible/aws_hosts.txt
   - all_nodes.sh
     - updated with host private ips from hosts.txt and removed when cluster is deleted
   - controller_node.sh
@@ -39,5 +43,10 @@ Kubernetes Cluster bootstrapped via terraform script in AWS, Azure, and GCP. <br
 
 ## Deployment Instructions
 1. Update terraform.tfvars.
-2. terraform plan
-3. terraform apply -auto-approve
+2. terraform init -upgrade
+3. terraform plan -var-file=local.tfvars
+4. terraform apply -auto-approve -var-file=local.tfvars
+5. export ANSIBLE_ROLES_PATH=./ansible/roles
+6. ansible-playbook -i ./ansible/inventory.yaml ./ansible/playbook.yaml
+7. terraform destroy -auto-approve -var-file=local.tfvars
+8. unset ANSIBLE_ROLES_PATH
