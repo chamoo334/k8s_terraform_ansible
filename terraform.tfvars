@@ -3,7 +3,8 @@ cloud_provider = {
     "azure" = false
     "gcp" = false
 }
-aws_cli = {
+
+aws_credentials = {
     "region" = ""
     "access_key" = ""
     "secret_key" = ""
@@ -11,3 +12,10 @@ aws_cli = {
 ami_id = "ami-06e46074ae430fba6"
 instance_type = ""
 key_pair_name = ""
+
+azure_credentials = {
+    subscription_id = ""
+    tenant_id = ""
+    client_id = ""
+    client_secret = ""
+}

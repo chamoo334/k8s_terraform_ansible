@@ -43,6 +43,7 @@ Kubernetes Cluster bootstrapped via terraform script in AWS, Azure, and GCP. <br
 
 ## Deployment Instructions
 1. Update terraform.tfvars.
+   1. 
 2. terraform init -upgrade
 3. terraform plan -var-file=local.tfvars
 4. terraform apply -auto-approve -var-file=local.tfvars

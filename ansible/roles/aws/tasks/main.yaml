@@ -184,7 +184,6 @@
 # Execute on workers
 
 # Check nodes on controller
-    # cmd: "{{ hostvars.aws_controller.aws_kube_join | replace('\"','') }}"
 - name: Check nodes
   delegate_to: aws_controller
   run_once: true

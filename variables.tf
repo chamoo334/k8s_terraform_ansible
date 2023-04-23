@@ -15,8 +15,8 @@ variable "vm_names" {
 }
 
 # AWS Configuration
-variable "aws_cli" {
-    description = "Environment variables to configure the AWS CLI and AWS region"
+variable "aws_credentials" {
+    description = "Variables to configure the AWS access and AWS region"
     type = map
     sensitive   = true
 }
@@ -186,3 +186,17 @@ variable "instance_type" {
     description = "Instance type to use for all instances."
     type = string
 }
+
+# Azure Configuration
+variable "azure_credentials" {
+    description = "Variables to configure the Azure access"
+    type = map
+    sensitive   = true
+}
+
+# GCPConfiguration
+# variable "gcp_credentials" {
+#     description = "Variables to configure the GCP access"
+#     type = map
+#     sensitive   = true
+# }
