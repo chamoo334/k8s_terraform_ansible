@@ -27,3 +27,27 @@ variable "vm_names" {
   description = "Hostname and tags of virtual machines."
   type        = map(string)
 }
+
+variable "sg_k8s_controller" {
+  description = "Security group rules for cluster controller"
+  type = map(object({
+    name = string
+    description = string
+    priority   = number
+    protocol   = string
+    source_port_range   = string
+    destination_port_range     = string
+  }))
+}
+
+variable "sg_k8s_worker" {
+  description = "Security group rules for cluster controller"
+  type = map(object({
+    name = string
+    description = string
+    priority   = number
+    protocol   = string
+    source_port_range   = string
+    destination_port_range     = string
+  }))
+}

@@ -26,7 +26,7 @@ variable "aws_credentials" {
   type = map
 }
 
-variable "sg_k8s_controller_ingress" {
+variable "aws_controller_ingress" {
   description = "Security group rules for cluster controller"
   type = map(object({
     start_port  = number
@@ -92,24 +92,10 @@ variable "sg_k8s_controller_ingress" {
       protocol    = "tcp"
       cidr_blocks = ["0.0.0.0/0"]
     }
-    # "6783" = {
-    #     start_port = 6783
-    #     end_port = 6783
-    #     description = "Weavnet CNI"
-    #     protocol = "tcp"
-    #     cidr_blocks = ["0.0.0.0/0"]
-    # }
-    # "6784" = {
-    #     start_port = 6784
-    #     end_port = 6784
-    #     description = "Weavnet CNI"
-    #     protocol = "udp"
-    #     cidr_blocks = ["0.0.0.0/0"]
-    # }
   }
 }
 
-variable "sg_k8s_worker_ingress" {
+variable "aws_worker_ingress" {
   description = "Security group rules for cluster worker nodes"
   type = map(object({
     start_port  = number
@@ -154,20 +140,6 @@ variable "sg_k8s_worker_ingress" {
       protocol    = "tcp"
       cidr_blocks = ["0.0.0.0/0"]
     }
-    # "6783" = {
-    #     start_port = 6783
-    #     end_port = 6783
-    #     description = "Weavnet CNI"
-    #     protocol = "tcp"
-    #     cidr_blocks = ["0.0.0.0/0"]
-    # }
-    # "6784" = {
-    #     start_port = 6784
-    #     end_port = 6784
-    #     description = "Weavnet CNI"
-    #     protocol = "udp"
-    #     cidr_blocks = ["0.0.0.0/0"]
-    # }
   }
 }
 
@@ -196,6 +168,138 @@ variable "resource_group_location" {
 variable "azure_address_space" {
   description = "Virtual network address space along with 2 subnet adress prefixes"
   type = list(string)
+}
+
+variable "azure_controller_sg" {
+  description = "Security group rules for cluster controller"
+  type = map(object({
+    name = string
+    description = string
+    priority   = number
+    protocol   = string
+    source_port_range   = string
+    destination_port_range     = string
+  }))
+  default = {
+    "22" = {
+      name = "ssh-k8s-controller"
+      description = "SSH access"
+      priority = 100
+      protocol = "Tcp"
+      source_port_range = "22"
+      destination_port_range = "22"
+    }
+    "80" = {
+      name = "http-k8s-controller"
+      description = "HTTP access"
+      priority = 200
+      protocol    = "Tcp"
+      source_port_range  = "80"
+      destination_port_range    = "80"
+    }
+    "443" = {
+      name = "https-k8s-controller"
+      description = "HTTPS access"
+      priority = 300
+      protocol    = "Tcp"
+      source_port_range = "443"
+      destination_port_range    = "443"
+    }
+    "6443" = {
+      name = "k8s-api-controller"
+      description = "Kubernetes API server"
+      priority = 400
+      protocol    = "Tcp"
+      source_port_range = "6443"
+      destination_port_range    = "6443"
+    }
+    "2379" = {
+      name = "k8s-etcd-controller"
+      description = "etcd server client API"
+      priority = 500
+      protocol    = "Tcp"
+      source_port_range = "2379-2380"
+      destination_port_range    = "2379-2380"
+    }
+    "10250" = {
+      name = "kubelet-controller"
+      description = "Kubelet API"
+      priority = 600
+      protocol    = "Tcp"
+      source_port_range = "10250"
+      destination_port_range    = "10250"
+    }
+    "10259" = {
+      name = "scheduler-controller"
+      description = "kube-scheduler"
+      priority = 700
+      protocol    = "Tcp"
+      source_port_range = "10259"
+      destination_port_range    = "10259"
+    }
+    "10257" = {
+      name = "kube-controller-manager"
+      description = "kube-controller-manager"
+      priority = 800
+      protocol    = "Tcp"
+      source_port_range = "10257"
+      destination_port_range    = "10257"
+    }
+  }
+}
+
+variable "azure_worker_sg" {
+  description = "Security group rules for cluster worker nodes"
+  type = map(object({
+    name = string
+    description = string
+    priority   = number
+    protocol   = string
+    source_port_range   = string
+    destination_port_range     = string
+  }))
+  default = {
+    "22" = {
+      name = "ssh-k8s-worker"
+      description = "SSH access"
+      priority = 100
+      protocol = "Tcp"
+      source_port_range = "22"
+      destination_port_range = "22"
+    }
+    "80" = {
+      name = "http-k8s-worker"
+      description = "HTTP access"
+      priority = 200
+      protocol    = "Tcp"
+      source_port_range  = "80"
+      destination_port_range    = "80"
+    }
+    "443" = {
+      name = "https-k8s-worker"
+      description = "HTTPS access"
+      priority = 300
+      protocol    = "Tcp"
+      source_port_range = "443"
+      destination_port_range    = "443"
+    }
+    "10250" = {
+      name = "kubelet-worker"
+      description = "Kubelet API"
+      priority = 400
+      protocol    = "Tcp"
+      source_port_range = "10250"
+      destination_port_range    = "10250"
+    }
+    "30000" = {
+      name = "nodeport-services"
+      description = "NodePort Services"
+      priority = 500
+      protocol    = "Tcp"
+      source_port_range  = "30000-32767"
+      destination_port_range    = "30000-32767"
+    }
+  }
 }
 
 # GCPConfiguration

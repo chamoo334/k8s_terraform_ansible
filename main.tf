@@ -7,8 +7,8 @@
 #   instance_type             = var.instance_type
 #   key_pair_name             = var.project_id
 #   sg_name_prefix            = var.project_id
-#   sg_k8s_controller_ingress = var.sg_k8s_controller_ingress
-#   sg_k8s_worker_ingress     = var.sg_k8s_controller_ingress
+#   sg_k8s_controller_ingress = var.aws_controller_ingress
+#   sg_k8s_worker_ingress     = var.aws_worker_ingress
 # }
 
 # Create Kubernetes cluster in Azure
@@ -21,6 +21,8 @@ module "azure_k8s" {
   network_name = var.project_id
   network_address_space = var.azure_address_space
   vm_names = var.vm_names
+  sg_k8s_controller = var.azure_controller_sg
+  sg_k8s_worker = var.azure_worker_sg
 }
 
 # Create Kubernetes cluster in GCP
@@ -30,61 +32,61 @@ module "azure_k8s" {
 # }
 
 # Create Ansible playbook
-resource "local_file" "playbook" {
-  filename = "./ansible/playbook.yaml"
-  content  = <<-EOT
-%{if var.cloud_provider.aws}
-- name: Create AWS Kubernetes clusters
-  hosts: aws
-  gather_facts: no
-  remote_user: root
-  become: yes
-  roles:
-    - aws%{endif}
-%{if var.cloud_provider.azure}
-- name: Create Azure Kubernetes clusters
-  hosts: azure
-  gather_facts: no
-  remote_user: root
-  become: yes
-  roles:
-    - azure%{endif}
-%{if var.cloud_provider.gcp}
-- name: Create GCP Kubernetes clusters
-  hosts: gcp
-  gather_facts: no
-  remote_user: root
-  become: yes
-  roles:
-    - gcp%{endif}
-EOT
-}
+# resource "local_file" "playbook" {
+#   filename = "./ansible/playbook.yaml"
+#   content  = <<-EOT
+# %{if var.cloud_provider.aws}
+# - name: Create AWS Kubernetes clusters
+#   hosts: aws
+#   gather_facts: no
+#   remote_user: root
+#   become: yes
+#   roles:
+#     - aws%{endif}
+# %{if var.cloud_provider.azure}
+# - name: Create Azure Kubernetes clusters
+#   hosts: azure
+#   gather_facts: no
+#   remote_user: root
+#   become: yes
+#   roles:
+#     - azure%{endif}
+# %{if var.cloud_provider.gcp}
+# - name: Create GCP Kubernetes clusters
+#   hosts: gcp
+#   gather_facts: no
+#   remote_user: root
+#   become: yes
+#   roles:
+#     - gcp%{endif}
+# EOT
+# }
 
-# Create Ansible inventory
-resource "local_file" "inventory" {
-  filename = "./ansible/inventory.yaml"
-  content  = <<-EOT
-all:
-  children: %{if var.cloud_provider.aws}
-    aws:
-      vars:
-        ansible_port: 22
-        ansible_user: ec2-user
-        ansible_ssh_private_key_file: ${module.aws_k8s[0].aws_private_key_file}
-      hosts:
-        aws_controller:
-          ansible_host: ${module.aws_k8s[0].aws_controller_public_ip}
-      children:
-        aws_workers:
-          hosts:%{for node in module.aws_k8s[0].aws_workers}
-            aws_${node}:
-              ansible_host: ${module.aws_k8s[0].aws_worker_public_ips[node]}%{endfor}%{endif}%{if var.cloud_provider.azure}
-    azure:%{endif}%{if var.cloud_provider.gcp}
-    gcp:%{endif}
-EOT
+# # Create Ansible inventory
+# resource "local_file" "inventory" {
+#   filename = "./ansible/inventory.yaml"
+#   content  = <<-EOT
+# all:
+#   children: %{if var.cloud_provider.aws}
+#     aws:
+#       vars:
+#         ansible_port: 22
+#         ansible_user: ec2-user
+#         ansible_ssh_private_key_file: ${module.aws_k8s[0].aws_private_key_file}
+#       hosts:
+#         aws_controller:
+#           ansible_host: ${module.aws_k8s[0].aws_controller_public_ip}
+#       children:
+#         aws_workers:
+#           hosts:%{for node in module.aws_k8s[0].aws_workers}
+#             aws_${node}:
+#               ansible_host: ${module.aws_k8s[0].aws_worker_public_ips[node]}%{endfor}%{endif}%{if var.cloud_provider.azure}
+#     azure:%{endif}%{if var.cloud_provider.gcp}
+#     gcp:%{endif}
+# EOT
 
-  depends_on = [module.aws_k8s]
-}
+#   depends_on = [module.aws_k8s]
+# }
 
 # Set Ansible roles path and run created playbook with created inventory
 # resource "null_resource" "run_playbook" {

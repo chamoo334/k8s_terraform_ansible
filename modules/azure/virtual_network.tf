@@ -1,3 +1,4 @@
+# Virtual Network
 resource "azurerm_virtual_network" "k8s" {
   name                = "${var.network_name}-network"
   location            = var.resource_group_location
@@ -6,6 +7,7 @@ resource "azurerm_virtual_network" "k8s" {
 #   dns_servers         = ["10.0.0.4", "10.0.0.5"]
 }
 
+# Subnets
 resource "azurerm_subnet" "k8s" {
     count = 2
     name                 = count.index == 0 ? "${var.network_name}-controller-subnet" : "${var.network_name}-workers-subnet"
@@ -26,6 +28,7 @@ resource "azurerm_public_ip" "k8s" {
     allocation_method = "Static"
 }
 
+# Network Interfaces
 resource "azurerm_network_interface" "k8s" {
     for_each = var.vm_names
     name                = "${each.value}-nic"
@@ -36,8 +39,8 @@ resource "azurerm_network_interface" "k8s" {
         name                          = "internal"
         subnet_id = each.key == local.machines[0] ? azurerm_subnet.k8s[0].id : azurerm_subnet.k8s[1].id
         private_ip_address_allocation = "Dynamic"
-        public_ip_address_id = each.key == azurerm_public_ip.k8s[each.key].id
+        public_ip_address_id = azurerm_public_ip.k8s[each.key].id
     }
 
-    # depends_on = [azurerm_subnet.k8s, azurerm_public_ip.k8s]
+    depends_on = [azurerm_subnet.k8s, azurerm_public_ip.k8s]
 }
