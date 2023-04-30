@@ -51,3 +51,26 @@ variable "sg_k8s_worker" {
     destination_port_range     = string
   }))
 }
+
+variable "vm_size " {
+  description = "Virtual machine size"
+  type = string
+}
+variable "admin_username" {
+  description = "USername for admin on virtual machines"
+  type = string
+}
+variable "disable_password_authentication" {
+  description = "Disable password authentication on virtual machines"
+  type = bool
+}
+
+variable "source_image" {
+  description = "Virtual machine source image reference"
+  type = map(object({
+    publisher = string
+    offer     = string
+    sku       = string
+    version   = string
+  }))
+}

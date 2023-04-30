@@ -18,3 +18,14 @@ azure_credentials = {
   client_id       = ""
   client_secret   = ""
 }
+resource_group_location = ""
+azure_address_space = ["", "", ""]
+vm_size = ""
+admin_username = ""
+disable_password_authentication = true
+source_image = {
+  publisher = ""
+  offer     = ""
+  sku       = ""
+  version   = ""
+}

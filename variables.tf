@@ -302,6 +302,29 @@ variable "azure_worker_sg" {
   }
 }
 
+variable "vm_size " {
+  description = "Virtual machine size"
+  type = string
+}
+variable "admin_username" {
+  description = "USername for admin on virtual machines"
+  type = string
+}
+variable "disable_password_authentication" {
+  description = "Disable password authentication on virtual machines"
+  type = bool
+}
+
+variable "source_image" {
+  description = "Virtual machine source image reference"
+  type = map(object({
+    publisher = string
+    offer     = string
+    sku       = string
+    version   = string
+  }))
+}
+
 # GCPConfiguration
 # variable "gcp_credentials" {
 #     description = "Variables to configure the GCP access"

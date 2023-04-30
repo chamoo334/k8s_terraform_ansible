@@ -72,16 +72,28 @@ module "azure_k8s" {
 #       vars:
 #         ansible_port: 22
 #         ansible_user: ec2-user
-#         ansible_ssh_private_key_file: ${module.aws_k8s[0].aws_private_key_file}
+#         ansible_ssh_private_key_file: ${module.aws_k8s[0].private_key_file}
 #       hosts:
 #         aws_controller:
-#           ansible_host: ${module.aws_k8s[0].aws_controller_public_ip}
+#           ansible_host: ${module.aws_k8s[0].controller_public_ip}
 #       children:
 #         aws_workers:
-#           hosts:%{for node in module.aws_k8s[0].aws_workers}
+#           hosts:%{for node in module.aws_k8s[0].workers}
 #             aws_${node}:
-#               ansible_host: ${module.aws_k8s[0].aws_worker_public_ips[node]}%{endfor}%{endif}%{if var.cloud_provider.azure}
-#     azure:%{endif}%{if var.cloud_provider.gcp}
+#               ansible_host: ${module.aws_k8s[0].worker_public_ips[node]}%{endfor}%{endif}%{if var.cloud_provider.azure}
+#     azure:
+#       vars:
+#         ansible_port: 22
+#         ansible_user: ${var.admin_username}
+#         ansible_ssh_private_key_file: ${module.azure_k8s[0].private_key_file}
+#       hosts:
+#         aws_controller:
+#           ansible_host: ${module.azure_k8s[0].controller_public_ip}
+#       children:
+#         aws_workers:
+#           hosts:%{for node in module.azure_k8s[0].workers}
+#             aws_${node}:
+#               ansible_host: ${module.azure_k8s[0].worker_public_ips[node]}%{endfor}%{endif}%{if var.cloud_provider.gcp}
 #     gcp:%{endif}
 # EOT
 

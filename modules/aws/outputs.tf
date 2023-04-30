@@ -4,19 +4,19 @@ output "ssh_commands" {
   }
 }
 
-output "aws_private_key_file" {
+output "private_key_file" {
   value = local_file.k8s_key.filename
 }
 
-output "aws_controller_public_ip" {
+output "controller_public_ip" {
   value = aws_instance.k8s["${local.instances[0]}"].public_ip
 }
 
-output "aws_workers" {
+output "workers" {
   value = slice(local.instances, 1, length(local.instances))
 }
 
-output "aws_worker_public_ips" {
+output "worker_public_ips" {
   value = {
     for node in local.instances : node => aws_instance.k8s["${node}"].public_ip if node != local.instances[0]
   }
