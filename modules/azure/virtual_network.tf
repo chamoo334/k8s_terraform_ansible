@@ -7,6 +7,15 @@ resource "azurerm_virtual_network" "k8s" {
 #   dns_servers         = ["10.0.0.4", "10.0.0.5"]
 }
 
+# static ip addresses
+resource "azurerm_public_ip" "k8s" {
+    for_each = var.vm_names
+    name = "${each.value}-ip"
+    resource_group_name = azurerm_resource_group.k8s.name
+    location = var.resource_group_location
+    allocation_method = "Static"
+}
+
 # Subnets
 resource "azurerm_subnet" "k8s" {
     count = 2
@@ -19,14 +28,22 @@ resource "azurerm_subnet" "k8s" {
     depends_on = [azurerm_virtual_network.k8s]
 }
 
-# static ip addresses
-resource "azurerm_public_ip" "k8s" {
-    for_each = var.vm_names
-    name = "${each.value}-ip"
-    resource_group_name = azurerm_resource_group.k8s.name
-    location = var.resource_group_location
-    allocation_method = "Static"
+# Subnet Security Association
+resource "azurerm_subnet_network_security_group_association" "worker" {
+    count = 2
+    subnet_id = azurerm_subnet.k8s[count.index].id
+    network_security_group_id = count.index == 0 ? azurerm_network_security_group.controller.id : azurerm_network_security_group.worker.id
 }
+
+# resource "azurerm_subnet_network_security_group_association" "controller" {
+#     subnet_id = azurerm_subnet.k8s[0].id
+#     network_security_group_id = azurerm_network_security_group.controller.id
+# }
+
+# resource "azurerm_subnet_network_security_group_association" "worker" {
+#     subnet_id = azurerm_subnet.k8s[1].id
+#     network_security_group_id = azurerm_network_security_group.worker.id
+# }
 
 # Network Interfaces
 resource "azurerm_network_interface" "k8s" {

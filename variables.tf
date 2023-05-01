@@ -23,7 +23,11 @@ variable "vm_names" {
 variable "aws_credentials" {
   description = "Variables to configure the AWS access and AWS region"
   sensitive   = true
-  type = map
+  type = object({
+  region     = string
+  access_key = string
+  secret_key = string
+})
 }
 
 variable "aws_controller_ingress" {
@@ -156,8 +160,13 @@ variable "instance_type" {
 # Azure Configuration
 variable "azure_credentials" {
   description = "Variables to configure the Azure access"
-  type        = map(any)
   sensitive   = true
+  type = object({
+    subscription_id = string
+    tenant_id     = string
+    client_id       = string
+    client_secret   = string
+  })
 }
 
 variable "resource_group_location" {
@@ -302,14 +311,16 @@ variable "azure_worker_sg" {
   }
 }
 
-variable "vm_size " {
+variable "vm_size" {
   description = "Virtual machine size"
   type = string
 }
+
 variable "admin_username" {
   description = "USername for admin on virtual machines"
   type = string
 }
+
 variable "disable_password_authentication" {
   description = "Disable password authentication on virtual machines"
   type = bool
@@ -317,15 +328,15 @@ variable "disable_password_authentication" {
 
 variable "source_image" {
   description = "Virtual machine source image reference"
-  type = map(object({
+  type = object({
     publisher = string
     offer     = string
     sku       = string
     version   = string
-  }))
+  })
 }
 
-# GCPConfiguration
+# GCP Configuration
 # variable "gcp_credentials" {
 #     description = "Variables to configure the GCP access"
 #     type = map

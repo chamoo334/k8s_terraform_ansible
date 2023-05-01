@@ -73,13 +73,3 @@ resource "azurerm_network_security_group" "worker" {
         }
     }
 }
-
-resource "azurerm_subnet_network_security_group_association" "controller" {
-    subnet_id = azurerm_subnet.k8s[0].id
-    network_security_group_id = azurerm_network_security_group.controller.id
-}
-
-resource "azurerm_subnet_network_security_group_association" "worker" {
-    subnet_id = azurerm_subnet.k8s[1].id
-    network_security_group_id = azurerm_network_security_group.worker.id
-}

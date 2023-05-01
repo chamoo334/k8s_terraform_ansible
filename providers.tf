@@ -7,10 +7,10 @@ provider "aws" {
 
 # Configure the Microsoft Azure provider
 provider "azurerm" {
-  subscription_id = var.azure_credentials.subscription_id
-  tenant_id       = var.azure_credentials.tenant_id
-  client_id       = var.azure_credentials.client_id
-  client_secret   = var.azure_credentials.client_secret
+  subscription_id = "${var.azure_credentials.subscription_id}"
+  tenant_id       = "${var.azure_credentials.tenant_id}"
+  client_id       = "${var.azure_credentials.client_id}"
+  client_secret   = "${var.azure_credentials.client_secret}"
   features {}
 }
 

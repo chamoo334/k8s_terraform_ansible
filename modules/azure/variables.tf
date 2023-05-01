@@ -52,7 +52,7 @@ variable "sg_k8s_worker" {
   }))
 }
 
-variable "vm_size " {
+variable "vm_size" {
   description = "Virtual machine size"
   type = string
 }
@@ -67,10 +67,10 @@ variable "disable_password_authentication" {
 
 variable "source_image" {
   description = "Virtual machine source image reference"
-  type = map(object({
+  type = object({
     publisher = string
     offer     = string
     sku       = string
     version   = string
-  }))
+  })
 }

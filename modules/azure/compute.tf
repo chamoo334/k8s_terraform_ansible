@@ -24,5 +24,34 @@ resource "azurerm_linux_virtual_machine" "k8s" {
         sku       = var.source_image.sku
         version   = var.source_image.version
     }
+
+    provisioner "remote-exec" {
+        inline = ["echo 'connected!'"]
+
+        connection {
+        type        = "ssh"
+        user        = var.admin_username
+        private_key = file("${local_file.k8s_key.filename}")
+        host        = self.public_ip_address
+        }
+    }
+}
+
+# store private ips in local file, and update ansible role
+resource "local_file" "k8s_private_ips" {
+  filename = "./ansible/azure_hosts.txt"
+  content  = <<-EOT
+  shell: |
+    cat <<EOF | sudo tee /etc/hosts
+%{for node in local.machines~}
+    ${azurerm_linux_virtual_machine.k8s["${node}"].private_ip_address} ${var.vm_names["${node}"]}
+%{endfor~}
+    EOF
+EOT
+
+  provisioner "local-exec" {
+    command = "sed -i '' '/name: Configure hosts/r ./ansible/azure_hosts.txt' ./ansible/roles/azure/tasks/main.yaml"
+  }
+
 }
 

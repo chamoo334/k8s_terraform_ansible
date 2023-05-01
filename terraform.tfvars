@@ -9,7 +9,7 @@ aws_credentials = {
   "access_key" = ""
   "secret_key" = ""
 }
-ami_id        = "ami-06e46074ae430fba6"
+ami_id        = ""
 instance_type = ""
 
 azure_credentials = {
@@ -22,10 +22,12 @@ resource_group_location = ""
 azure_address_space = ["", "", ""]
 vm_size = ""
 admin_username = ""
-disable_password_authentication = true
+disable_password_authentication = false
 source_image = {
   publisher = ""
   offer     = ""
   sku       = ""
   version   = ""
 }
+
+# gcp_credentials = {}

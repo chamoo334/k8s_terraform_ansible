@@ -23,6 +23,10 @@ module "azure_k8s" {
   vm_names = var.vm_names
   sg_k8s_controller = var.azure_controller_sg
   sg_k8s_worker = var.azure_worker_sg
+  vm_size = var.vm_size
+  admin_username = var.admin_username
+  disable_password_authentication = var.disable_password_authentication
+  source_image = var.source_image
 }
 
 # Create Kubernetes cluster in GCP
