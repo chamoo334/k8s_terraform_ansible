@@ -28,14 +28,21 @@ Kubernetes Cluster bootstrapped via terraform script in AWS, Azure, and GCP. <br
 - Terraform creates and destroys files for use with Ansible. *These files will be destroyed along with other Terraform resources.*
   - ./ansible/aws_{var.key_pair_name}.pem
   - ./ansible/aws_hosts.txt
-  - all_nodes.sh
-    - updated with host private ips from hosts.txt and removed when cluster is deleted
-  - controller_node.sh
-  - worker_node.sh
 
 ### Azure
-- 
-- 
+- [resource group]()
+- [2 network security groups](./modules/azure/network_security_group.tf)
+- [virtual network](./modules/azure/network.tf)
+- [virtual machines]()
+  - default is 3
+    - controller
+    - worker1
+    - worker2
+  - output azure_ssh_commands contains ssh command for each instance
+  - **NOTE: the first key will be the assumed controller node while creating the inventory file. View code [here](./modules/aws/ansible.tf).**
+- Terraform creates and destroys files for use with Ansible. *These files will be destroyed along with other Terraform resources.*
+  - ./ansible/azure_{var.key_pair_name}.pem
+  - ./ansible/azure_hosts.txt
 
 ### GCP
 - 

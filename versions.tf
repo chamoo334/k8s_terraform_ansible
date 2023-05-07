@@ -14,10 +14,5 @@ terraform {
       source  = "hashicorp/google"
       version = "4.61.0"
     }
-
-    ansible = {
-      source  = "ansible/ansible"
-      version = "1.0.0"
-    }
   }
 }

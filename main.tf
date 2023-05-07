@@ -2,38 +2,44 @@
 # module "aws_k8s" {
 #   count                     = var.cloud_provider.aws ? 1 : 0
 #   source                    = "./modules/aws"
-#   ami_id                    = var.ami_id
+#   ami_id                    = var.aws.ami_id
 #   ec2_names                 = var.vm_names
-#   instance_type             = var.instance_type
+#   instance_type             = var.aws.instance_type
 #   key_pair_name             = var.project_id
 #   sg_name_prefix            = var.project_id
-#   sg_k8s_controller_ingress = var.aws_controller_ingress
-#   sg_k8s_worker_ingress     = var.aws_worker_ingress
+#   sg_k8s_controller_ingress = var.aws.controller_ingress
+#   sg_k8s_worker_ingress     = var.aws.worker_ingress
 # }
 
 # Create Kubernetes cluster in Azure
-module "azure_k8s" {
-  count                   = var.cloud_provider.azure ? 1 : 0
-  source                  = "./modules/azure"
-  resource_group_name     = var.project_id
-  resource_group_location = var.resource_group_location
-  ssh_key_name            = var.project_id
-  network_name = var.project_id
-  network_address_space = var.azure_address_space
-  vm_names = var.vm_names
-  sg_k8s_controller = var.azure_controller_sg
-  sg_k8s_worker = var.azure_worker_sg
-  vm_size = var.vm_size
-  admin_username = var.admin_username
-  disable_password_authentication = var.disable_password_authentication
-  source_image = var.source_image
-}
-
-# Create Kubernetes cluster in GCP
-# module "gcp_k8s" {
-#     count = var.cloud_provider.gcp ? 1 : 0
-#     source = "./modules/gcp"
+# module "azure_k8s" {
+#   count                   = var.cloud_provider.azure ? 1 : 0
+#   source                  = "./modules/azure"
+#   resource_group_name     = var.project_id
+#   resource_group_location = var.azure.resource_group_location
+#   ssh_key_name            = var.project_id
+#   network_name = var.project_id
+#   network_address_space = var.azure.address_space
+#   vm_names = var.vm_names
+#   sg_k8s_controller = var.azure.controller_sg
+#   sg_k8s_worker = var.azure.worker_sg
+#   vm_size = var.azure.vm_size
+#   admin_username = var.azure.admin_username
+#   disable_password_authentication = var.azure.disable_password_authentication
+#   source_image = var.azure.source_image
 # }
+
+# # Create Kubernetes cluster in GCP
+module "gcp_k8s" {
+    count = var.cloud_provider.gcp ? 1 : 0
+    source = "./modules/gcp"
+    vm_names = var.vm_names
+    ssh_key_name            = var.project_id
+    network = var.gcp.network
+    machine_type = var.gcp.machine_type
+    image = var.gcp.image
+    firewalls = var.gcp.firewalls
+}
 
 # Create Ansible playbook
 # resource "local_file" "playbook" {
