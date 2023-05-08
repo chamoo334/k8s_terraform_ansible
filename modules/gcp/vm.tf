@@ -1,5 +1,3 @@
-data "google_client_openid_userinfo" "user" {}
-
 resource "google_compute_address" "static_ip" {
   for_each  = var.vm_names
   name      = each.value

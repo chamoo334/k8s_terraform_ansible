@@ -27,6 +27,9 @@ override.tf.json
 
 # Miscellaneous files
 *.txt
+# !requirements.txt
 *.pem
 *test*
 scripts/aws/aws.yaml
+venv/
+.vscode/

@@ -29,9 +29,8 @@ variable "admin_username" {
 }
 
 variable "firewalls" {
-  description = "NEtwork Firewall rules for cluster instances"
+  description = "Network Firewall rules for cluster instances"
   type = map(object({
-    network       = string
     target_tags   = list(string)
     source_ranges = list(string)
     protocol      = string

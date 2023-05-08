@@ -7,8 +7,8 @@ module "aws_k8s" {
   instance_type             = var.aws.instance_type
   key_pair_name             = var.project_id
   sg_name_prefix            = var.project_id
-  sg_k8s_controller_ingress = var.aws.controller_ingress
-  sg_k8s_worker_ingress     = var.aws.worker_ingress
+  sg_k8s_controller_ingress = var.sg_controller
+  sg_k8s_worker_ingress     = var.sg_worker
 }
 
 # Create Kubernetes cluster in Azure
@@ -21,8 +21,8 @@ module "azure_k8s" {
   network_name                    = var.project_id
   network_address_space           = var.azure.address_space
   vm_names                        = var.vm_names
-  sg_k8s_controller               = var.azure.controller_sg
-  sg_k8s_worker                   = var.azure.worker_sg
+  sg_k8s_controller               = local.azure_sg.controller
+  sg_k8s_worker                   = local.azure_sg.worker
   vm_size                         = var.azure.vm_size
   admin_username                  = var.azure.admin_username
   disable_password_authentication = var.azure.disable_password_authentication
@@ -39,7 +39,7 @@ module "gcp_k8s" {
   machine_type = var.gcp.machine_type
   image        = var.gcp.image
   admin_username = var.gcp.admin_username
-  firewalls    = var.gcp.firewalls
+  firewalls    = local.gcp_firewall
 }
 
 # # Create Ansible playbook
