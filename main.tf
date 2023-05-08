@@ -1,47 +1,48 @@
 # Create Kubernetes cluster in AWS
-# module "aws_k8s" {
-#   count                     = var.cloud_provider.aws ? 1 : 0
-#   source                    = "./modules/aws"
-#   ami_id                    = var.aws.ami_id
-#   ec2_names                 = var.vm_names
-#   instance_type             = var.aws.instance_type
-#   key_pair_name             = var.project_id
-#   sg_name_prefix            = var.project_id
-#   sg_k8s_controller_ingress = var.aws.controller_ingress
-#   sg_k8s_worker_ingress     = var.aws.worker_ingress
-# }
-
-# Create Kubernetes cluster in Azure
-# module "azure_k8s" {
-#   count                   = var.cloud_provider.azure ? 1 : 0
-#   source                  = "./modules/azure"
-#   resource_group_name     = var.project_id
-#   resource_group_location = var.azure.resource_group_location
-#   ssh_key_name            = var.project_id
-#   network_name = var.project_id
-#   network_address_space = var.azure.address_space
-#   vm_names = var.vm_names
-#   sg_k8s_controller = var.azure.controller_sg
-#   sg_k8s_worker = var.azure.worker_sg
-#   vm_size = var.azure.vm_size
-#   admin_username = var.azure.admin_username
-#   disable_password_authentication = var.azure.disable_password_authentication
-#   source_image = var.azure.source_image
-# }
-
-# # Create Kubernetes cluster in GCP
-module "gcp_k8s" {
-    count = var.cloud_provider.gcp ? 1 : 0
-    source = "./modules/gcp"
-    vm_names = var.vm_names
-    ssh_key_name            = var.project_id
-    network = var.gcp.network
-    machine_type = var.gcp.machine_type
-    image = var.gcp.image
-    firewalls = var.gcp.firewalls
+module "aws_k8s" {
+  count                     = var.cloud_provider.aws ? 1 : 0
+  source                    = "./modules/aws"
+  ami_id                    = var.aws.ami_id
+  ec2_names                 = var.vm_names
+  instance_type             = var.aws.instance_type
+  key_pair_name             = var.project_id
+  sg_name_prefix            = var.project_id
+  sg_k8s_controller_ingress = var.aws.controller_ingress
+  sg_k8s_worker_ingress     = var.aws.worker_ingress
 }
 
-# Create Ansible playbook
+# Create Kubernetes cluster in Azure
+module "azure_k8s" {
+  count                           = var.cloud_provider.azure ? 1 : 0
+  source                          = "./modules/azure"
+  resource_group_name             = var.project_id
+  resource_group_location         = var.azure.resource_group_location
+  ssh_key_name                    = var.project_id
+  network_name                    = var.project_id
+  network_address_space           = var.azure.address_space
+  vm_names                        = var.vm_names
+  sg_k8s_controller               = var.azure.controller_sg
+  sg_k8s_worker                   = var.azure.worker_sg
+  vm_size                         = var.azure.vm_size
+  admin_username                  = var.azure.admin_username
+  disable_password_authentication = var.azure.disable_password_authentication
+  source_image                    = var.azure.source_image
+}
+
+# Create Kubernetes cluster in GCP
+module "gcp_k8s" {
+  count        = var.cloud_provider.gcp ? 1 : 0
+  source       = "./modules/gcp"
+  vm_names     = var.vm_names
+  ssh_key_name = var.project_id
+  network      = var.gcp.network
+  machine_type = var.gcp.machine_type
+  image        = var.gcp.image
+  admin_username = var.gcp.admin_username
+  firewalls    = var.gcp.firewalls
+}
+
+# # Create Ansible playbook
 # resource "local_file" "playbook" {
 #   filename = "./ansible/playbook.yaml"
 #   content  = <<-EOT
@@ -104,13 +105,25 @@ module "gcp_k8s" {
 #           hosts:%{for node in module.azure_k8s[0].workers}
 #             aws_${node}:
 #               ansible_host: ${module.azure_k8s[0].worker_public_ips[node]}%{endfor}%{endif}%{if var.cloud_provider.gcp}
-#     gcp:%{endif}
+#     gcp:
+#       vars:
+#         ansible_port: 22
+#         ansible_user:
+#         ansible_ssh_private_key_file: ${module.gcp_k8s[0].private_key_file}
+#       hosts:
+#         aws_controller:
+#           ansible_host: ${module.gcp_k8s[0].controller_public_ip}
+#       children:
+#         aws_workers:
+#           hosts:%{for node in module.gcp_k8s[0].workers}
+#             aws_${node}:
+#               ansible_host: ${module.gcp_k8s[0].worker_public_ips[node]}%{endfor}%{endif}
 # EOT
 
-#   depends_on = [module.aws_k8s]
+#   depends_on = [module.aws_k8s, module.azure_k8s, module.module.gcp_k8s]
 # }
 
-# Set Ansible roles path and run created playbook with created inventory
+# # Set Ansible roles path and run created playbook with created inventory
 # resource "null_resource" "run_playbook" {
 #   #     provisioner "local-exec" {
 #   #         command = <<-EOT

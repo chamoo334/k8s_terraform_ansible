@@ -15,12 +15,12 @@ variable "ssh_key_name" {
 
 variable "network_name" {
   description = "Name of network wherein virtual machines where reside"
-  type = string
+  type        = string
 }
 
 variable "network_address_space" {
   description = "Virtual network address space"
-  type = list(string)
+  type        = list(string)
 }
 
 variable "vm_names" {
@@ -31,38 +31,38 @@ variable "vm_names" {
 variable "sg_k8s_controller" {
   description = "Security group rules for cluster controller"
   type = map(object({
-    name = string
-    description = string
-    priority   = number
-    protocol   = string
-    source_port_range   = string
-    destination_port_range     = string
+    name                   = string
+    description            = string
+    priority               = number
+    protocol               = string
+    source_port_range      = string
+    destination_port_range = string
   }))
 }
 
 variable "sg_k8s_worker" {
   description = "Security group rules for cluster controller"
   type = map(object({
-    name = string
-    description = string
-    priority   = number
-    protocol   = string
-    source_port_range   = string
-    destination_port_range     = string
+    name                   = string
+    description            = string
+    priority               = number
+    protocol               = string
+    source_port_range      = string
+    destination_port_range = string
   }))
 }
 
 variable "vm_size" {
   description = "Virtual machine size"
-  type = string
+  type        = string
 }
 variable "admin_username" {
   description = "USername for admin on virtual machines"
-  type = string
+  type        = string
 }
 variable "disable_password_authentication" {
   description = "Disable password authentication on virtual machines"
-  type = bool
+  type        = bool
 }
 
 variable "source_image" {

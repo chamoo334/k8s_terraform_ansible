@@ -15,7 +15,7 @@ provider "azurerm" {
 }
 
 # Configure the GCP provider
-provider "google" { 
+provider "google" {
   project     = var.gcp.creds.project
   region      = var.gcp.creds.region
   zone        = var.gcp.creds.zone
