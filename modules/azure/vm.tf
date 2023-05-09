@@ -33,7 +33,6 @@ resource "azurerm_linux_virtual_machine" "k8s" {
       user        = var.admin_username
       private_key = file("${local_file.k8s_key.filename}")
       host        = self.public_ip_address
-      # host        = azurerm_public_ip.k8s[each.key].id
     }
   }
 }
