@@ -1,11 +1,11 @@
-# Configure the AWS provider
+#! Configure the AWS provider
 provider "aws" {
  region     = var.aws.creds.region
  access_key = var.aws.creds.access_key
  secret_key = var.aws.creds.secret_key
 }
 
-# Configure the Microsoft Azure provider
+#! Configure the Microsoft Azure provider
 provider "azurerm" {
  subscription_id = var.azure.creds.subscription_id
  tenant_id       = var.azure.creds.tenant_id
@@ -14,7 +14,7 @@ provider "azurerm" {
  features {}
 }
 
-# Configure the GCP provider
+#! Configure the GCP provider
 provider "google" {
   project     = var.gcp.creds.project
   region      = var.gcp.creds.region

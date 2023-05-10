@@ -1,11 +1,5 @@
 output "ssh_commands" {
   value = {
-    for node in local.machines : var.vm_names[node] => "ssh -i ${local_file.k8s_key.filename} ${var.admin_username}@${google_compute_address.k8s["${node}"].address}"
-  }
-}
-
-output "ssh_commands_2" {
-  value = {
     for node in local.machines : var.vm_names[node] => "ssh -i ${local_file.k8s_key.filename} ${var.admin_username}@${google_compute_instance.k8s["${node}"].network_interface.0.access_config.0.nat_ip}"
   }
 }

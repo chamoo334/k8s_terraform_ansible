@@ -1,4 +1,4 @@
-# Create Kubernetes cluster in AWS
+#! Create Kubernetes cluster in AWS
 module "aws_k8s" {
  count                     = var.cloud_provider.aws ? 1 : 0
  source                    = "./modules/aws"
@@ -11,7 +11,7 @@ module "aws_k8s" {
  sg_k8s_worker_ingress     = var.sg_worker
 }
 
-# Create Kubernetes cluster in Azure
+#! Create Kubernetes cluster in Azure
 module "azure_k8s" {
  count                           = var.cloud_provider.azure ? 1 : 0
  source                          = "./modules/azure"
@@ -29,7 +29,7 @@ module "azure_k8s" {
  source_image                    = var.azure.source_image
 }
 
-# Create Kubernetes cluster in GCP
+#! Create Kubernetes cluster in GCP
 module "gcp_k8s" {
   count        = var.cloud_provider.gcp ? 1 : 0
   source       = "./modules/gcp"
@@ -42,7 +42,7 @@ module "gcp_k8s" {
   firewalls    = local.gcp_firewall
 }
 
-# Create Ansible playbook
+#! Create Ansible playbook
 resource "local_file" "playbook" {
   filename = "./ansible/playbook.yaml"
   content  = <<-EOT
@@ -73,12 +73,29 @@ resource "local_file" "playbook" {
 EOT
 }
 
-# Create Ansible inventory
+ Create Ansible inventory
 resource "local_file" "inventory" {
   filename = "./ansible/inventory.yaml"
   content  = <<-EOT
 all:
-  children: %{if var.cloud_provider.aws}
+  children:
+EOT
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+if test -f ./ansible/inventory.yaml; then rm ./ansible/inventory.yaml; fi
+if test -f ./ansible/plays.log; then rm ./ansible/plays.log; fi
+EOT
+  }
+}
+
+#! Add AWS inventory
+resource "null_resource" "aws_inventory" {
+  count                           = var.cloud_provider.aws ? 1 : 0
+  provisioner "local-exec" {
+    command = <<-EOT
+cat <<EOF >> ${local_file.inventory.filename}
     aws:
       vars:
         ansible_port: 22
@@ -91,7 +108,20 @@ all:
         aws_workers:
           hosts:%{for node in module.aws_k8s[0].workers}
             aws_${node}:
-              ansible_host: ${module.aws_k8s[0].worker_public_ips[node]}%{endfor}%{endif}%{if var.cloud_provider.azure}
+              ansible_host: ${module.aws_k8s[0].worker_public_ips[node]}%{endfor}
+EOF
+EOT
+  }
+
+  depends_on = [module.aws_k8s, local_file.inventory]
+}
+
+#! Add Azure inventory
+resource "null_resource" "azure_inventory" {
+  count                           = var.cloud_provider.azure ? 1 : 0
+  provisioner "local-exec" {
+    command = <<-EOT
+cat <<EOF >> ${local_file.inventory.filename}
     azure:
       vars:
         ansible_port: 22
@@ -104,7 +134,20 @@ all:
         aws_workers:
           hosts:%{for node in module.azure_k8s[0].workers}
             aws_${node}:
-              ansible_host: ${module.azure_k8s[0].worker_public_ips[node]}%{endfor}%{endif}%{if var.cloud_provider.gcp}
+              ansible_host: ${module.azure_k8s[0].worker_public_ips[node]}%{endfor}
+EOF
+EOT
+  }
+
+  depends_on = [module.azure_k8s, local_file.inventory]
+}
+
+#! Add GCP inventory
+resource "null_resource" "gcp_inventory" {
+  count                           = var.cloud_provider.gcp ? 1 : 0
+  provisioner "local-exec" {
+    command = <<-EOT
+cat <<EOF >> ${local_file.inventory.filename}
     gcp:
       vars:
         ansible_port: 22
@@ -117,31 +160,10 @@ all:
         aws_workers:
           hosts:%{for node in module.gcp_k8s[0].workers}
             aws_${node}:
-              ansible_host: ${module.gcp_k8s[0].worker_public_ips[node]}%{endfor}%{endif}
+              ansible_host: ${module.gcp_k8s[0].worker_public_ips[node]}%{endfor}
+EOF
 EOT
+  }
 
-  depends_on = [module.aws_k8s, module.azure_k8s, module.module.gcp_k8s]
+  depends_on = [module.gcp_k8s, local_file.inventory]
 }
-
-#  Set Ansible roles path and run created playbook with created inventory
-# resource "null_resource" "run_playbook" {
-#         provisioner "local-exec" {
-#             command = <<-EOT
-#     export ANSIBLE_ROLES_PATH=./ansible/roles
-#     ansible-playbook -i ./ansible/inventory.yaml ./ansible/playbook.yaml -T 720 > ./ansible/plays.log
-#     EOT
-#         }
-
-#    provisioner "local-exec" {
-#      when    = destroy
-#      command = <<-EOT
-#  unset ANSIBLE_ROLES_PATH
-#  if test -f ./ansible/inventory.yaml; then rm ./ansible/inventory.yaml; fi
-#  if test -f ./ansible/plays.log; then rm ./ansible/plays.log; fi
-#  EOT
-#    }
-
-#    depends_on = [local_file.inventory, local_file.playbook, module.aws_k8s]
-#     depends_on = [local_file.inventory, local_file.playbook, module.aws_k8s.null_resource.aws_inventory, module.aws_k8s.local_file.aws_worker_tasks]
-
-# }

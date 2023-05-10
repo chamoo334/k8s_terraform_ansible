@@ -51,10 +51,6 @@ Kubernetes Cluster bootstrapped via terraform script in AWS, Azure, and GCP. <br
 ## Deployment Instructions
 1. Update terraform.tfvars.
    1. 
-2. terraform init -upgrade
-3. terraform plan -var-file=local.tfvars
-4. terraform apply -auto-approve -var-file=local.tfvars
-5. export ANSIBLE_ROLES_PATH=./ansible/roles
-6. ansible-playbook -i ./ansible/inventory.yaml ./ansible/playbook.yaml
-7. terraform destroy -auto-approve -var-file=local.tfvars
-8. unset ANSIBLE_ROLES_PATH
+2. python3 k8s.py local.tfvars init 
+   1. python3 k8s.py local.tfvars upgrade
+3. python3 k8s.py local.tfvars
