@@ -39,4 +39,15 @@ EOT
     command = "sed -i '' '/name: Configure hosts/r ./ansible/aws_hosts.txt' ./ansible/roles/aws/tasks/main.yaml"
   }
 
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+export line1=$(($(grep -n "name: Configure hosts" ./ansible/roles/aws/tasks/main.yaml | cut -d: -f1)+1));
+export line2=$(($(grep -n "name: Install iproute" ./ansible/roles/aws/tasks/main.yaml | cut -d: -f1)-2));
+sed -i '' -e "$line1","$line2"d ./ansible/roles/aws/tasks/main.yaml;
+unset line1;
+unset line2;
+EOT
+  }
+
 }

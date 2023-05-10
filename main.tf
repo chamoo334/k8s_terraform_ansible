@@ -53,7 +53,7 @@ resource "local_file" "playbook" {
   remote_user: root
   become: yes
   roles:
-    - aws%{endif}
+    - ./roles/aws%{endif}
 %{if var.cloud_provider.azure}
 - name: Create Azure Kubernetes clusters
   hosts: azure
@@ -61,33 +61,25 @@ resource "local_file" "playbook" {
   remote_user: root
   become: yes
   roles:
-    - azure%{endif}
+    - ./roles/azure%{endif}
 %{if var.cloud_provider.gcp}
 - name: Create GCP Kubernetes clusters
   hosts: gcp
   gather_facts: no
-  remote_user: root
+  remote_user: ${var.gcp.admin_username}
   become: yes
   roles:
-    - gcp%{endif}
+    - ./roles/gcp%{endif}
 EOT
 }
 
- Create Ansible inventory
+#! Create Ansible inventory
 resource "local_file" "inventory" {
   filename = "./ansible/inventory.yaml"
   content  = <<-EOT
 all:
   children:
 EOT
-
-  provisioner "local-exec" {
-    when    = destroy
-    command = <<-EOT
-if test -f ./ansible/inventory.yaml; then rm ./ansible/inventory.yaml; fi
-if test -f ./ansible/plays.log; then rm ./ansible/plays.log; fi
-EOT
-  }
 }
 
 #! Add AWS inventory
@@ -125,15 +117,15 @@ cat <<EOF >> ${local_file.inventory.filename}
     azure:
       vars:
         ansible_port: 22
-        ansible_user: ${var.admin_username}
+        ansible_user: ${var.azure.admin_username}
         ansible_ssh_private_key_file: ${module.azure_k8s[0].private_key_file}
       hosts:
-        aws_controller:
+        azure_controller:
           ansible_host: ${module.azure_k8s[0].controller_public_ip}
       children:
-        aws_workers:
+        azure_workers:
           hosts:%{for node in module.azure_k8s[0].workers}
-            aws_${node}:
+            azure_${node}:
               ansible_host: ${module.azure_k8s[0].worker_public_ips[node]}%{endfor}
 EOF
 EOT
@@ -151,19 +143,29 @@ cat <<EOF >> ${local_file.inventory.filename}
     gcp:
       vars:
         ansible_port: 22
-        ansible_user:
+        ansible_user: ${var.gcp.admin_username}
         ansible_ssh_private_key_file: ${module.gcp_k8s[0].private_key_file}
       hosts:
-        aws_controller:
+        gcp_controller:
           ansible_host: ${module.gcp_k8s[0].controller_public_ip}
       children:
-        aws_workers:
+        gcp_workers:
           hosts:%{for node in module.gcp_k8s[0].workers}
-            aws_${node}:
+            gcp_${node}:
               ansible_host: ${module.gcp_k8s[0].worker_public_ips[node]}%{endfor}
 EOF
 EOT
   }
 
   depends_on = [module.gcp_k8s, local_file.inventory]
+}
+
+resource "null_resource" "clean_up" {
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+if test -f ./ansible/inventory.yaml; then rm ./ansible/inventory.yaml; fi
+if test -f ./ansible/plays.log; then rm ./ansible/plays.log; fi
+EOT
+  }
 }

@@ -18,7 +18,7 @@
 
 - name: Install iproute
   yum:
-    name: iproute-tc
+    name: iproute
     state: installed
 
 - name: Kernel modules configuration
@@ -149,7 +149,7 @@
   shell:
     cmd: sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
     
-- pause: seconds=60
+- pause: seconds=20
     
 - name: update ./kube/config permissions
   delegate_to: azure_controller
@@ -165,7 +165,7 @@
   shell:
     cmd: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml
 
-- pause: seconds=60
+- pause: seconds=20
 
 - name: Get pods
   delegate_to: azure_controller
@@ -182,6 +182,10 @@
     msg: "{{ get_pods.stdout_lines }}"
 
 # Execute on workers
+- name: Add nodes to Azure Kubernetes cluster
+  when: inventory_hostname.startswith('azure_worker')
+  shell:
+    cmd: "{{ hostvars.azure_controller.azure_kube_join }}"
 
 # Check nodes on controller
 - name: Check nodes

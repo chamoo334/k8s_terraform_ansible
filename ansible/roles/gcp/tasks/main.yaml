@@ -18,7 +18,7 @@
 
 - name: Install iproute
   yum:
-    name: iproute-tc
+    name: iproute
     state: installed
 
 - name: Kernel modules configuration
@@ -114,13 +114,15 @@
   set_fact:
     gcp_cluster_init: "{{init_output.stdout | split('\n')}}"
     
-# - pause: seconds=90
+- pause: seconds=30
     
-#- name: Execute mkdir, cp, and chown commands
-#   shell:
-#     cmd: "{{item}}"
-#   with_items: "{{gcp_cluster_init}}"
-#   when: "'mkdir' in item or 'sudo' in item"
+- name: Execute mkdir, cp, and chown commands
+  delegate_to: gcp_controller
+  run_once: true
+  shell:
+    cmd: "{{item}}"
+  with_items: "{{gcp_cluster_init}}"
+  when: "'mkdir' in item or 'sudo' in item"
     
 - name: Find kubeadm join command
   delegate_to: gcp_controller
@@ -135,28 +137,28 @@
   vars:
     next_item: "{{gcp_cluster_init[arr_index + 1]}}"
     
-- name: Create .kube directory
-  delegate_to: gcp_controller
-  run_once: true
-  become: false
-  shell:
-    cmd: mkdir -p $HOME/.kube
+# - name: Create .kube directory
+#   delegate_to: gcp_controller
+#   run_once: true
+#   become: false
+#   shell:
+#     cmd: mkdir -p $HOME/.kube
   
-- name: Create admin.conf to user's kube config
-  delegate_to: gcp_controller
-  run_once: true
-  become: false
-  shell:
-    cmd: sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+# - name: Create admin.conf to user's kube config
+#   delegate_to: gcp_controller
+#   run_once: true
+#   become: false
+#   shell:
+#     cmd: sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
     
-- pause: seconds=60
+# - pause: seconds=20
     
-- name: update ./kube/config permissions
-  delegate_to: gcp_controller
-  run_once: true
-  become: false
-  shell:
-    cmd: sudo chown $(id -u):$(id -g) $HOME/.kube/config
+# - name: update ./kube/config permissions
+#   delegate_to: gcp_controller
+#   run_once: true
+#   become: false
+#   shell:
+#     cmd: sudo chown $(id -u):$(id -g) $HOME/.kube/config
     
 - name: Install Calico pod network add-on
   delegate_to: gcp_controller
@@ -165,7 +167,7 @@
   shell:
     cmd: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml
 
-- pause: seconds=60
+- pause: seconds=20
 
 - name: Get pods
   delegate_to: gcp_controller
@@ -182,6 +184,10 @@
     msg: "{{ get_pods.stdout_lines }}"
 
 # Execute on workers
+- name: Add nodes to GCP Kubernetes cluster
+  when: inventory_hostname.startswith('gcp_worker')
+  shell:
+    cmd: "{{ hostvars.gcp_controller.gcp_kube_join }}"
 
 # Check nodes on controller
 - name: Check nodes

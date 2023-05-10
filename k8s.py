@@ -18,6 +18,7 @@ main = 'main.tf'
 output = 'outputs.tf'
 
 def read_cloud_providers():
+    '''Purpose:'''
     with open(tfvars) as tf_file:
         for num, line in enumerate(tf_file, 1):
             if "cloud_provider" in line:
@@ -35,6 +36,7 @@ def write_to_file(filename, content):
 
 
 def update_versions_tf():
+    '''Purpose:'''
     content = None
     find = Template('$provider = {\n')
     
@@ -62,6 +64,7 @@ def update_versions_tf():
 
 
 def update_providers_tf():
+    '''Purpose:'''
     content = None
     find = Template('provider "$provider" {\n')
     
@@ -98,6 +101,7 @@ def update_providers_tf():
 
 
 def update_main_tf():
+    '''Purpose:'''
     content = None
     find_module = Template('module "$provider')
     # find_inventory = Template('resource "null_resource" "$provider"')
@@ -120,9 +124,8 @@ def update_main_tf():
         try:
             find_r_module_next = re.compile('.*' + find_module.substitute(provider=cp_keys[i + 1])  + '_k8s" {\n')
             end_idx_module = content.index((list(filter(find_r_module_next.match, content))[0])) - 2
-
         except:
-            find_r_module_next = re.compile('.*' + '# Create Ansible playbook\n')
+            find_r_module_next = re.compile('.*' + '#! Create Ansible playbook\n')
             end_idx_module = content.index((list(filter(find_r_module_next.match, content))[0])) - 2
 
         if cloud_providers[cp_keys[i]]:
@@ -148,6 +151,7 @@ def update_main_tf():
 
 
 def update_outputs_tf():
+    '''Purpose:'''
     content = None
     find = Template('output "$provider') #output "aws_ssh_commands" {
 
@@ -178,6 +182,7 @@ def update_outputs_tf():
 
 
 def confirm_updates():
+    '''Purpose:'''
     prompt = "Confirm the updated Terraform files are free from errors.\nNow is the time to add additional resources.\nAre you ready to proceed? (y/n): "
     answer = input(prompt)
 
@@ -192,6 +197,7 @@ def confirm_updates():
 
 
 def run_terraform():
+    '''Purpose:'''
     commands = [
         ['terraform', 'init'],
         ['terraform', 'plan', f'-var-file={tfvars}'],
@@ -210,20 +216,18 @@ def run_terraform():
 
 
 def run_ansible():
+    '''Purpose:'''
     commands = [
-        ['export', 'ANSIBLE_ROLES_PATH=./ansible/roles'],
         ['ansible-playbook', '-i=./ansible/inventory.yaml', './ansible/playbook.yaml', '-T=720'], # > ./ansible/plays.log
-        ['unset', 'ANSIBLE_ROLES_PATH'],
     ]
 
     if build:
-        for i in range(0, len(commands)-1):
+        for i in range(0, len(commands)):
             subprocess.call(commands[i])
-    else:
-        subprocess.call(commands[-1])
 
 
 def clean_up():
+    '''Purpose:'''
     all_files = [versions, providers, main, output]
 
     run_terraform()
@@ -246,12 +250,12 @@ def clean_up():
 if __name__ == '__main__':
     if build:
         print(f'Using Terraform variables file {tfvars} to update versions.tf, providers.tf, main.tf, and outputs.tf')
-        # read_cloud_providers()
-        # update_versions_tf()
-        # update_providers_tf()
-        # update_main_tf()
-        # update_outputs_tf()
-        # confirm_updates()
+        read_cloud_providers()
+        update_versions_tf()
+        update_providers_tf()
+        update_main_tf()
+        update_outputs_tf()
+        confirm_updates()
         run_terraform()
         run_ansible()
     else:
