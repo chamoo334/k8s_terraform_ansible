@@ -177,7 +177,7 @@ def update_outputs_tf():
     write_to_file(output, content)
 
 
-def confirm_versions_providers_tf():
+def confirm_updates():
     prompt = "Confirm the updated Terraform files are free from errors.\nNow is the time to add additional resources.\nAre you ready to proceed? (y/n): "
     answer = input(prompt)
 
@@ -212,7 +212,7 @@ def run_terraform():
 def run_ansible():
     commands = [
         ['export', 'ANSIBLE_ROLES_PATH=./ansible/roles'],
-        ['ansible-playbook', '-i ./ansible/inventory.yaml', './ansible/playbook.yaml', '-T=720'], # > ./ansible/plays.log
+        ['ansible-playbook', '-i=./ansible/inventory.yaml', './ansible/playbook.yaml', '-T=720'], # > ./ansible/plays.log
         ['unset', 'ANSIBLE_ROLES_PATH'],
     ]
 
@@ -225,6 +225,9 @@ def run_ansible():
 
 def clean_up():
     all_files = [versions, providers, main, output]
+
+    run_terraform()
+    run_ansible()
 
     for each in all_files:
         content = None
@@ -248,10 +251,8 @@ if __name__ == '__main__':
         # update_providers_tf()
         # update_main_tf()
         # update_outputs_tf()
-        # confirm_versions_providers_tf()
+        # confirm_updates()
         run_terraform()
         run_ansible()
     else:
-        # run_terraform()
-        # run_ansible()
         clean_up()
