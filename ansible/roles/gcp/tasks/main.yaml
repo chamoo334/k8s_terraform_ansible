@@ -114,16 +114,18 @@
   set_fact:
     gcp_cluster_init: "{{init_output.stdout | split('\n')}}"
     
+# - pause: seconds=30
+    
+# - name: Execute mkdir, cp, and chown commands
+#   delegate_to: gcp_controller
+#   run_once: true
+#   shell:
+#     cmd: "{{item}}"
+#   with_items: "{{gcp_cluster_init}}"
+#   when: "'mkdir' in item or 'sudo' in item"
+
 - pause: seconds=30
-    
-- name: Execute mkdir, cp, and chown commands
-  delegate_to: gcp_controller
-  run_once: true
-  shell:
-    cmd: "{{item}}"
-  with_items: "{{gcp_cluster_init}}"
-  when: "'mkdir' in item or 'sudo' in item"
-    
+
 - name: Find kubeadm join command
   delegate_to: gcp_controller
   run_once: true
@@ -137,28 +139,28 @@
   vars:
     next_item: "{{gcp_cluster_init[arr_index + 1]}}"
     
-# - name: Create .kube directory
-#   delegate_to: gcp_controller
-#   run_once: true
-#   become: false
-#   shell:
-#     cmd: mkdir -p $HOME/.kube
+- name: Create .kube directory
+  delegate_to: gcp_controller
+  run_once: true
+  become: false
+  shell:
+    cmd: mkdir -p $HOME/.kube
   
-# - name: Create admin.conf to user's kube config
-#   delegate_to: gcp_controller
-#   run_once: true
-#   become: false
-#   shell:
-#     cmd: sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+- name: Create admin.conf to user's kube config
+  delegate_to: gcp_controller
+  run_once: true
+  become: false
+  shell:
+    cmd: sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
     
-# - pause: seconds=20
+- pause: seconds=20
     
-# - name: update ./kube/config permissions
-#   delegate_to: gcp_controller
-#   run_once: true
-#   become: false
-#   shell:
-#     cmd: sudo chown $(id -u):$(id -g) $HOME/.kube/config
+- name: update ./kube/config permissions
+  delegate_to: gcp_controller
+  run_once: true
+  become: false
+  shell:
+    cmd: sudo chown $(id -u):$(id -g) $HOME/.kube/config
     
 - name: Install Calico pod network add-on
   delegate_to: gcp_controller
