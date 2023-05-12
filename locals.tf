@@ -46,4 +46,6 @@ locals {
             ports = [for key, value in var.sg_worker : value.start_port == value.end_port ? "${value.start_port}" : "${value.start_port}-${value.end_port}"]
         }
     }
+
+  machines = keys(var.vm_names)
 }

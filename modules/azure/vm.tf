@@ -41,6 +41,7 @@ resource "azurerm_linux_virtual_machine" "k8s" {
 resource "local_file" "k8s_private_ips" {
   filename = "./ansible/azure_hosts.txt"
   content  = <<-EOT
+  when: "'azure' in group_names"
   shell: |
     cat <<EOF | sudo tee /etc/hosts
 %{for node in local.machines~}
@@ -48,21 +49,6 @@ resource "local_file" "k8s_private_ips" {
 %{endfor~}
     EOF
 EOT
-
-  provisioner "local-exec" {
-    command = "sed -i '' '/name: Configure hosts/r ./ansible/azure_hosts.txt' ./ansible/roles/azure/tasks/main.yaml"
-  }
-
-  provisioner "local-exec" {
-    when    = destroy
-    command = <<-EOT
-export line1=$(($(grep -n "name: Configure hosts" ./ansible/roles/azure/tasks/main.yaml | cut -d: -f1)+1));
-export line2=$(($(grep -n "name: Install iproute" ./ansible/roles/azure/tasks/main.yaml | cut -d: -f1)-2));
-sed -i '' -e "$line1","$line2"d ./ansible/roles/azure/tasks/main.yaml;
-unset line1;
-unset line2;
-EOT
-  }
 
 }
 

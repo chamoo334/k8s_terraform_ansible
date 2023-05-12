@@ -1,0 +1,6 @@
+- name: Create Kubernetes Clusters
+  hosts: all
+  gather_facts: false
+  become: true
+  roles:
+    - ./roles/k8s

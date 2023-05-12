@@ -1,5 +1,4 @@
 ---
-# tasks file for Azure
 # Execute on all
 - name: Update packages
   yum:
@@ -14,12 +13,23 @@
   shell:
     cmd: sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 
-- name: Configure hosts
+- name: Configure hosts on aws
+  
+- name: Configure hosts on azure
 
-- name: Install iproute
+- name: Configure hosts on gcp
+
+- name: Install iproute Azure and/or gcp
   yum:
     name: iproute
     state: installed
+  when: "'aws' not in group_names"
+
+- name: Install iproute AWS
+  yum:
+    name: iproute-tc
+    state: installed
+  when: "'aws' in group_names"
 
 - name: Kernel modules configuration
   shell: |
@@ -98,114 +108,94 @@
     enabled: yes
     state: started
 
-# Execute on controller
+# Execute on controllers
 - name: Create cluster
-  delegate_to: azure_controller
-  run_once: true
+  when: inventory_hostname in groups["controllers"]
   become: false
   shell:
     cmd: sudo kubeadm init --pod-network-cidr="{{pod_network_cidr}}"
   register: init_output
     
 - name: Split output by newline
-  delegate_to: azure_controller
-  run_once: true
+  when: inventory_hostname in groups["controllers"]
   become: false
   set_fact:
-    azure_cluster_init: "{{init_output.stdout | split('\n')}}"
-    
-# - pause: seconds=90
-    
-#- name: Execute mkdir, cp, and chown commands
-#   shell:
-#     cmd: "{{item}}"
-#   with_items: "{{azure_cluster_init}}"
-#   when: "'mkdir' in item or 'sudo' in item"
-    
+    cluster_init: "{{init_output.stdout | split('\n')}}"
+
 - name: Find kubeadm join command
-  delegate_to: azure_controller
-  run_once: true
   become: false
   set_fact:
-    azure_kube_join: "{{ ( item+next_item ) | replace('\\\t','') | replace('\"','') }}"
-  with_items: "{{azure_cluster_init}}"
-  when: "'kubeadm join' in item and arr_index < (azure_cluster_init | length) - 1 and inventory_hostname == 'azure_controller'"
+    kube_join: "{{ ( item+next_item ) | replace('\\\t','') | replace('\"','') }}"
+  with_items: "{{cluster_init}}"
+  when: (inventory_hostname in groups["controllers"]) and ('kubeadm' in item) and (arr_index < (cluster_init | length) - 1)
   loop_control:
     index_var: arr_index
   vars:
-    next_item: "{{azure_cluster_init[arr_index + 1]}}"
+    next_item: "{{cluster_init[arr_index + 1]}}"
     
 - name: Create .kube directory
-  delegate_to: azure_controller
-  run_once: true
+  when: inventory_hostname in groups["controllers"]
   become: false
   shell:
     cmd: mkdir -p $HOME/.kube
   
 - name: Create admin.conf to user's kube config
-  delegate_to: azure_controller
-  run_once: true
+  when: inventory_hostname in groups["controllers"]
   become: false
   shell:
     cmd: sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
     
-- pause: seconds=20
+- pause: seconds=30
     
 - name: update ./kube/config permissions
-  delegate_to: azure_controller
-  run_once: true
+  when: inventory_hostname in groups["controllers"]
   become: false
   shell:
     cmd: sudo chown $(id -u):$(id -g) $HOME/.kube/config
     
 - name: Install Calico pod network add-on
-  delegate_to: azure_controller
-  run_once: true
+  when: inventory_hostname in groups["controllers"]
   become: false
   shell:
     cmd: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml
 
-- pause: seconds=20
+- pause: seconds=30
 
 - name: Get pods
-  delegate_to: azure_controller
-  run_once: true
+  when: inventory_hostname in groups["controllers"]
   become: false
   shell:
     cmd: kubectl get pods --all-namespaces
   register: get_pods
     
 - name: Display results of initial pods
-  delegate_to: azure_controller
-  run_once: true
+  when: inventory_hostname in groups["controllers"]
   debug: 
     msg: "{{ get_pods.stdout_lines }}"
 
 # Execute on workers
-- name: Add nodes to Azure Kubernetes cluster
-  when: inventory_hostname.startswith('azure_worker')
+- name: Add nodes to Kubernetes cluster
+  when: inventory_hostname in groups["workers"]
+  vars:
+    cluster_controller: "{{group_names[0]}}_controller"
   shell:
-    cmd: "{{ hostvars.azure_controller.azure_kube_join }}"
+    cmd: "{{ hostvars[cluster_controller].kube_join }}"
 
-# Check nodes on controller
+# Check nodes on controllers
 - name: Check nodes
-  delegate_to: azure_controller
-  run_once: true
+  when: inventory_hostname in groups["controllers"]
   become: false
   shell:
     cmd: kubectl get nodes
   register: get_nodes
     
-- name: Display results of initial nodes
-  delegate_to: azure_controller
-  run_once: true
+- name: Display results of node check
+  when: inventory_hostname in groups["controllers"]
   debug: 
     msg: "{{ get_nodes.stdout_lines }}"
     
-- name: Unset Azure facts
-  delegate_to: azure_controller
-  run_once: true
-  set_fact:
-    azure_kube_join: null
-    azure_cluster_init: null
-  when: azure_kube_join is defined
+# - name: Unset GCP facts
+#   set_fact:
+#     kube_join: null
+#     cluster_init: null
+#   when: (inventory_hostname in groups["controllers"]) and (kube_join is defined)

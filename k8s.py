@@ -85,7 +85,7 @@ def update_providers_tf():
             
             end_idx = content.index((list(filter(find_r_next.match, content))[0])) - 2
         except:
-            end_idx = len(content) - 1
+            end_idx = len(content)
         
         if cloud_providers[cp_keys[i]]:
             for j in range(start_idx, end_idx):
@@ -104,13 +104,13 @@ def update_main_tf():
     '''Purpose:'''
     content = None
     find_module = Template('module "$provider')
-    # find_inventory = Template('resource "null_resource" "$provider"')
     find_inventory = Template('resource "null_resource" "$provider')
     find_inventory_end = Template('depends_on = \[module.$provider')
     
     with open(main) as tf_file:
         content = tf_file.readlines()
   
+    # Adjust modules and null_resources based on cloud_providers
     for i in range(0, cp_len):
         find_r_module = re.compile('.*' + find_module.substitute(provider=cp_keys[i])  + '_k8s" {\n')
         start_idx_module = content.index((list(filter(find_r_module.match, content))[0]))
@@ -125,29 +125,30 @@ def update_main_tf():
             find_r_module_next = re.compile('.*' + find_module.substitute(provider=cp_keys[i + 1])  + '_k8s" {\n')
             end_idx_module = content.index((list(filter(find_r_module_next.match, content))[0])) - 2
         except:
-            find_r_module_next = re.compile('.*' + '#! Create Ansible playbook\n')
-            end_idx_module = content.index((list(filter(find_r_module_next.match, content))[0])) - 2
+            find_r_module_next = re.compile('.*' + '#! Add AWS inventory\n')
+            end_idx_module = content.index((list(filter(find_r_module_next.match, content))[0])) - 1
 
+        # Removed commented lines & update dependencies if provider is being
         if cloud_providers[cp_keys[i]]:
-            for j in range(start_idx_module, end_idx_module):
-                if '#' in content[j]:
-                    content[j] = content[j].replace('#', '')
+            # for j in range(start_idx_module, end_idx_module):
+            #     if '#' in content[j]:
+            #         content[j] = content[j].replace('#', '')
             
-            for k in range(start_idx_inventory, end_idx_inventory):
-                if '#' in content[k]:
-                    content[k] = content[k].replace('#', '')
+            # for k in range(start_idx_inventory, end_idx_inventory):
+            #     if '#' in content[k]:
+            #         content[k] = content[k].replace('#', '')
 
+        # Comment provider modules and null resources
+        # else:
+        #     for j in range(start_idx_module, end_idx_module):
+        #         if '#' not in content[j]:
+        #             content[j] = '#' + content[j]
 
-        else:
-            for j in range(start_idx_module, end_idx_module):
-                if '#' not in content[j]:
-                    content[j] = '#' + content[j]
+        #     for k in range(start_idx_inventory, end_idx_inventory):
+        #         if '#' not in content[k]:
+        #             content[k] = '#' + content[k]
 
-            for k in range(start_idx_inventory, end_idx_inventory):
-                if '#' not in content[k]:
-                    content[k] = '#' + content[k]
-
-    write_to_file(main, content)
+    # write_to_file(main, content)
 
 
 def update_outputs_tf():
@@ -166,7 +167,7 @@ def update_outputs_tf():
             find_r_next = re.compile('.*' + find.substitute(provider=cp_keys[i + 1])  + '_ssh_commands" {\n')
             end_idx = content.index((list(filter(find_r_next.match, content))[0])) - 1
         except:
-            end_idx = len(content) - 1
+            end_idx = len(content)
 
         if cloud_providers[cp_keys[i]]:
             for j in range(start_idx, end_idx):
@@ -196,7 +197,7 @@ def confirm_updates():
         exit()
 
 
-def run_terraform():
+def run_terraform(): #terraform apply -auto-approve -var-file=local.tfvars
     '''Purpose:'''
     commands = [
         ['terraform', 'init'],
@@ -251,12 +252,12 @@ if __name__ == '__main__':
     if build:
         print(f'Using Terraform variables file {tfvars} to update versions.tf, providers.tf, main.tf, and outputs.tf')
         read_cloud_providers()
-        update_versions_tf()
-        update_providers_tf()
+        # update_versions_tf()
+        # update_providers_tf()
         update_main_tf()
-        update_outputs_tf()
-        confirm_updates()
-        run_terraform()
-        run_ansible()
+        # update_outputs_tf()
+        # confirm_updates()
+        # run_terraform()
+        # run_ansible()
     else:
         clean_up()

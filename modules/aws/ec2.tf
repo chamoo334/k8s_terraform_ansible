@@ -27,6 +27,7 @@ resource "aws_instance" "k8s" {
 resource "local_file" "k8s_private_ips" {
   filename = "./ansible/aws_hosts.txt"
   content  = <<-EOT
+  when: "'aws' in group_names"
   shell: |
     cat <<EOF | sudo tee /etc/hosts
 %{for node in local.instances~}

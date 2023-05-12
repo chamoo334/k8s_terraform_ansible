@@ -42,52 +42,11 @@ module "gcp_k8s" {
   firewalls    = local.gcp_firewall
 }
 
-#! Create Ansible playbook
-resource "local_file" "playbook" {
-  filename = "./ansible/playbook.yaml"
-  content  = <<-EOT
-%{if var.cloud_provider.aws}
-- name: Create AWS Kubernetes clusters
-  hosts: aws
-  gather_facts: no
-  remote_user: root
-  become: yes
-  roles:
-    - ./roles/aws%{endif}
-%{if var.cloud_provider.azure}
-- name: Create Azure Kubernetes clusters
-  hosts: azure
-  gather_facts: no
-  remote_user: root
-  become: yes
-  roles:
-    - ./roles/azure%{endif}
-%{if var.cloud_provider.gcp}
-- name: Create GCP Kubernetes clusters
-  hosts: gcp
-  gather_facts: no
-  remote_user: ${var.gcp.admin_username}
-  become: yes
-  roles:
-    - ./roles/gcp%{endif}
-EOT
-}
-
-#! Create Ansible inventory
-resource "local_file" "inventory" {
-  filename = "./ansible/inventory.yaml"
-  content  = <<-EOT
-all:
-  children:
-EOT
-}
-
-#! Add AWS inventory
+#! Add AWS hosts to Ansible inventory
 resource "null_resource" "aws_inventory" {
-  count                           = var.cloud_provider.aws ? 1 : 0
   provisioner "local-exec" {
     command = <<-EOT
-cat <<EOF >> ${local_file.inventory.filename}
+cat <<EOF >> ./ansible/inventory.yaml
     aws:
       vars:
         ansible_port: 22
@@ -102,18 +61,18 @@ cat <<EOF >> ${local_file.inventory.filename}
             aws_${node}:
               ansible_host: ${module.aws_k8s[0].worker_public_ips[node]}%{endfor}
 EOF
+sed -i '' '/name: Configure hosts on AWS/r ./ansible/aws_hosts.txt' ./ansible/roles/k8s/tasks/main.yaml
 EOT
   }
 
-  depends_on = [module.aws_k8s, local_file.inventory]
+  depends_on = [module.aws_k8s]
 }
 
-#! Add Azure inventory
+#! Add Azure hosts to Ansible inventory
 resource "null_resource" "azure_inventory" {
-  count                           = var.cloud_provider.azure ? 1 : 0
   provisioner "local-exec" {
     command = <<-EOT
-cat <<EOF >> ${local_file.inventory.filename}
+cat <<EOF >> ./ansible/inventory.yaml
     azure:
       vars:
         ansible_port: 22
@@ -128,18 +87,18 @@ cat <<EOF >> ${local_file.inventory.filename}
             azure_${node}:
               ansible_host: ${module.azure_k8s[0].worker_public_ips[node]}%{endfor}
 EOF
+sed -i '' '/name: Configure hosts on Azure/r ./ansible/azure_hosts.txt' ./ansible/roles/k8s/tasks/main.yaml
 EOT
   }
 
-  depends_on = [module.azure_k8s, local_file.inventory]
+  depends_on = [module.azure_k8s]
 }
 
-#! Add GCP inventory
+#! Add GCP hosts to Ansible inventory
 resource "null_resource" "gcp_inventory" {
-  count                           = var.cloud_provider.gcp ? 1 : 0
   provisioner "local-exec" {
     command = <<-EOT
-cat <<EOF >> ${local_file.inventory.filename}
+cat <<EOF >> ./ansible/inventory.yaml
     gcp:
       vars:
         ansible_port: 22
@@ -154,18 +113,68 @@ cat <<EOF >> ${local_file.inventory.filename}
             gcp_${node}:
               ansible_host: ${module.gcp_k8s[0].worker_public_ips[node]}%{endfor}
 EOF
+sed -i '' '/name: Configure hosts on GCP/r ./ansible/gcp_hosts.txt' ./ansible/roles/k8s/tasks/main.yaml
 EOT
   }
-
-  depends_on = [module.gcp_k8s, local_file.inventory]
+  
+  depends_on = [module.gcp_k8s, null_resource.azure_inventory]
 }
 
-resource "null_resource" "clean_up" {
+#! Add controllers and workers groups to Ansible inventory
+resource "null_resource" "add_inventory_groups" {
   provisioner "local-exec" {
-    when    = destroy
     command = <<-EOT
-if test -f ./ansible/inventory.yaml; then rm ./ansible/inventory.yaml; fi
-if test -f ./ansible/plays.log; then rm ./ansible/plays.log; fi
+cat <<EOF >> ./ansible/inventory.yaml
+    controllers:
+      hosts: %{if var.cloud_provider.aws}
+        aws_${local.machines[0]}:%{endif}%{if var.cloud_provider.azure}
+        azure_${local.machines[0]}:%{endif}%{if var.cloud_provider.azure}
+        gcp_${local.machines[0]}:%{endif}
+    workers:
+      hosts: %{if var.cloud_provider.aws}%{for node in local.machines}%{if node != local.machines[0]}
+        aws_${node}:%{endif}%{endfor}%{endif}%{if var.cloud_provider.azure}%{for node in local.machines}%{if node != local.machines[0]}
+        azure_${node}:%{endif}%{endfor}%{endif}%{if var.cloud_provider.gcp}%{for node in local.machines}%{if node != local.machines[0]}
+        gcp_${node}:%{endif}%{endfor}%{endif}
+EOF
 EOT
   }
+
+  depends_on = [null_resource.azure_inventory, null_resource.gcp_inventory]
+}
+
+resource "null_resource" "update_tasks" {
+  for_each = var.cloud_provider
+    provisioner "local-exec" {
+      command = <<-EOT
+ %{if each.value}
+ sed -i '' '/name: Configure hosts on ${each.key}/r ./ansible/${each.key}_hosts.txt' ./ansible/roles/k8s/tasks/main.yaml
+ %{else}
+ sed -i '' 's/^\(- name: Configure hosts on ${each.key}\)$/\1/' ./ansible/roles/k8s/tasks/main.yaml
+ %{endif}
+ EOT
+    }
+
+  provisioner "local-exec" {
+    when = destroy
+    command = <<-EOT
+ %{if each.value}
+ export line1=$(($(grep -n "name: Configure hosts on ${each.key}" ./ansible/roles/k8s/tasks/main.yaml | cut -d: -f1)+1));
+ export line2=$(($line1 + $(wc -l ./ansible/${each.key}_hosts.txt | awk '{ print $1 }') - 1))
+ sed -i '' -e "$line1","$line2"d ./ansible/roles/k8s/tasks/main.yaml;
+ unset line1;
+ unset line2;
+ %{else}
+ sed -i '' "s/- name: Configure hosts on ${each.key}/- name: Configure hosts on ${each.key}/" ./ansible/roles/k8s/tasks/main.yaml
+ %{endif}
+ EOT
+  }
+ }
+
+ resource "null_resource" "clean_inventory" {
+  provisioner "local-exec" {
+    when = destroy
+    command = <<-EOT
+ echo "all:\n  children:" > ./ansible/inventory.yaml
+ EOT
+  } 
 }
