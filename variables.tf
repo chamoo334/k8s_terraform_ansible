@@ -89,20 +89,6 @@ variable "sg_controller" {
       protocol    = "tcp"
       cidr_blocks = ["0.0.0.0/0"]
     }
-    # "6783" = {
-    #     start_port = 6783
-    #     end_port = 6783
-    #     description = "Weavnet CNI"
-    #     protocol = "tcp"
-    #     cidr_blocks = ["0.0.0.0/0"]
-    # }
-    # "6784" = {
-    #     start_port = 6784
-    #     end_port = 6784
-    #     description = "Weavnet CNI"
-    #     protocol = "udp"
-    #     cidr_blocks = ["0.0.0.0/0"]
-    # }
   }
 }
 
@@ -151,20 +137,6 @@ variable "sg_worker" {
       protocol    = "tcp"
       cidr_blocks = ["0.0.0.0/0"]
     }
-    # "6783" = {
-    #     start_port = 6783
-    #     end_port = 6783
-    #     description = "Weavnet CNI"
-    #     protocol = "tcp"
-    #     cidr_blocks = ["0.0.0.0/0"]
-    # }
-    # "6784" = {
-    #     start_port = 6784
-    #     end_port = 6784
-    #     description = "Weavnet CNI"
-    #     protocol = "udp"
-    #     cidr_blocks = ["0.0.0.0/0"]
-    # }
   }
 }
 
