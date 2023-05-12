@@ -116,10 +116,10 @@ EOF
 sed -i '' '/name: Configure hosts on GCP/r ./ansible/gcp_hosts.txt' ./ansible/roles/k8s/tasks/main.yaml
 EOT
   }
-  
-  depends_on = [module.gcp_k8s, null_resource.azure_inventory]
-}
 
+  depends_on = [module.gcp_k8s]
+}
+  
 #! Add controllers and workers groups to Ansible inventory
 resource "null_resource" "add_inventory_groups" {
   provisioner "local-exec" {
@@ -139,7 +139,7 @@ EOF
 EOT
   }
 
-  depends_on = [null_resource.azure_inventory, null_resource.gcp_inventory]
+  depends_on = []
 }
 
 resource "null_resource" "update_tasks" {
@@ -168,6 +168,8 @@ resource "null_resource" "update_tasks" {
  %{endif}
  EOT
   }
+
+  depends_on = [null_resource.add_inventory_groups]
  }
 
  resource "null_resource" "clean_inventory" {
@@ -177,4 +179,6 @@ resource "null_resource" "update_tasks" {
  echo "all:\n  children:" > ./ansible/inventory.yaml
  EOT
   } 
+
+  depends_on = [null_resource.add_inventory_groups, null_resource.update_tasks]
 }

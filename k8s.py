@@ -15,7 +15,7 @@ cp_len = len(cloud_providers)
 versions = 'versions.tf'
 providers = './providers.tf'
 main = 'main.tf' 
-output = 'outputs.tf'
+outputs = 'outputs.tf'
 
 def read_cloud_providers():
     '''Purpose:'''
@@ -29,86 +29,101 @@ def read_cloud_providers():
     linecache.clearcache()
 
 
+def read_file(filename):
+    lines = None
+    
+    with open(filename) as f:
+        lines = f.readlines()
+    
+    return lines
+
+
 def write_to_file(filename, content):
     with open(filename, 'w') as f:
         for line in content:
             f.write(line)
 
+def remove_comments(content):
+    for i in range(0, len(content)):
+        if '#' in content[i] and content[i][:2] != '#!':
+            content[i] = content[i].replace('#', '')
+
 
 def update_versions_tf():
     '''Purpose:'''
-    content = None
+    content = read_file(versions)
     find = Template('$provider = {\n')
     
-    with open(versions) as tf_file:
-        content = tf_file.readlines()
+    if build:
+        for each in cloud_providers:
+            find_r = re.compile('.*' + find.substitute(provider='azurerm')) if each == 'azure' else \
+                    re.compile('.*' + find.substitute(provider='google')) if each == 'gcp' else \
+                    re.compile('.*' + find.substitute(provider=each))
+            
+            idx = content.index((list(filter(find_r.match, content))[0]))
 
-    for each in cloud_providers:
-        find_r = re.compile('.*' + find.substitute(provider='azurerm')) if each == 'azure' else \
-                 re.compile('.*' + find.substitute(provider='google')) if each == 'gcp' else \
-                 re.compile('.*' + find.substitute(provider=each))
-        
-        idx = content.index((list(filter(find_r.match, content))[0]))
+            if cloud_providers[each]:
+                for i in range(idx, idx+4):
+                    if '#' in content[i]:
+                        content[i] = content[i].replace('#', '')
 
-        if cloud_providers[each]:
-            for i in range(idx, idx+4):
-                if '#' in content[i]:
-                    content[i] = content[i].replace('#', '')
-
-        else:
-            for i in range(idx, idx+4):
-                if '#' not in content[i]:
-                    content[i] = '#' + content[i]
+            else:
+                for i in range(idx, idx+4):
+                    if '#' not in content[i]:
+                        content[i] = '#' + content[i]
+    else:
+        remove_comments(content)
     
     write_to_file(versions, content)
 
 
 def update_providers_tf():
     '''Purpose:'''
-    content = None
+    content = read_file(providers)
     find = Template('provider "$provider" {\n')
     
-    with open(providers) as tf_file:
-        content = tf_file.readlines()
-    
-    for i in range(0, cp_len):
-        find_r = re.compile('.*' + find.substitute(provider='azurerm')) if cp_keys[i] == 'azure' else \
-                re.compile('.*' + find.substitute(provider='google')) if cp_keys[i] == 'gcp' else \
-                re.compile('.*' + find.substitute(provider=cp_keys[i]))
-        
-        start_idx = content.index((list(filter(find_r.match, content))[0]))
-        
-        try:
-            find_r_next = re.compile('.*' + find.substitute(provider='azurerm')) if cp_keys[i + 1] == 'azure' else \
-                re.compile('.*' + find.substitute(provider='google')) if cp_keys[i + 1] == 'gcp' else \
-                re.compile('.*' + find.substitute(provider=cp_keys[i + 1]))
+    if build:
+        for i in range(0, cp_len):
+            find_r = re.compile('.*' + find.substitute(provider='azurerm')) if cp_keys[i] == 'azure' else \
+                    re.compile('.*' + find.substitute(provider='google')) if cp_keys[i] == 'gcp' else \
+                    re.compile('.*' + find.substitute(provider=cp_keys[i]))
             
-            end_idx = content.index((list(filter(find_r_next.match, content))[0])) - 2
-        except:
-            end_idx = len(content)
-        
-        if cloud_providers[cp_keys[i]]:
-            for j in range(start_idx, end_idx):
-                if '#' in content[j]:
-                    content[j] = content[j].replace('#', '')
+            start_idx = content.index((list(filter(find_r.match, content))[0]))
+            
+            try:
+                find_r_next = re.compile('.*' + find.substitute(provider='azurerm')) if cp_keys[i + 1] == 'azure' else \
+                    re.compile('.*' + find.substitute(provider='google')) if cp_keys[i + 1] == 'gcp' else \
+                    re.compile('.*' + find.substitute(provider=cp_keys[i + 1]))
+                
+                end_idx = content.index((list(filter(find_r_next.match, content))[0])) - 2
+            except:
+                end_idx = len(content)
+            
+            if cloud_providers[cp_keys[i]]:
+                for j in range(start_idx, end_idx):
+                    if '#' in content[j]:
+                        content[j] = content[j].replace('#', '')
 
-        else:
-            for j in range(start_idx, end_idx):
-                if '#' not in content[j]:
-                    content[j] = '#' + content[j]
-
+            else:
+                for j in range(start_idx, end_idx):
+                    if '#' not in content[j]:
+                        content[j] = '#' + content[j]
+    else:
+        remove_comments(content)
+    
     write_to_file(providers, content)
 
 
 def update_main_tf():
     '''Purpose:'''
-    content = None
+    content = read_file(main)
     find_module = Template('module "$provider')
     find_inventory = Template('resource "null_resource" "$provider')
     find_inventory_end = Template('depends_on = \[module.$provider')
-    
-    with open(main) as tf_file:
-        content = tf_file.readlines()
+
+    find_r_null_depends = re.compile('.*' + 'depends_on = \[\]\n') if build else re.compile('.*' + 'depends_on = \[null_resource')
+    null_depends_idx = content.index((list(filter(find_r_null_depends.match, content))[0]))
+    content[null_depends_idx] = content[null_depends_idx][:-2]
   
     # Adjust modules and null_resources based on cloud_providers
     for i in range(0, cp_len):
@@ -120,66 +135,82 @@ def update_main_tf():
 
         find_r_inventory_end = re.compile('.*' + find_inventory_end.substitute(provider=cp_keys[i]))
         end_idx_inventory = content.index((list(filter(find_r_inventory_end.match, content))[0])) + 2
+        depends_idx = end_idx_inventory - 2
 
         try:
             find_r_module_next = re.compile('.*' + find_module.substitute(provider=cp_keys[i + 1])  + '_k8s" {\n')
             end_idx_module = content.index((list(filter(find_r_module_next.match, content))[0])) - 2
         except:
-            find_r_module_next = re.compile('.*' + '#! Add AWS inventory\n')
+            find_r_module_next = re.compile('.*' + '#! Add AWS hosts to Ansible inventory\n')
             end_idx_module = content.index((list(filter(find_r_module_next.match, content))[0])) - 1
 
-        # Removed commented lines & update dependencies if provider is being
-        if cloud_providers[cp_keys[i]]:
-            # for j in range(start_idx_module, end_idx_module):
-            #     if '#' in content[j]:
-            #         content[j] = content[j].replace('#', '')
+        if build:
+            # Removed commented lines & update dependencies for used modules and resources
+            if cloud_providers[cp_keys[i]]:
+                # content[null_depends_idx] += f'null_resource.{cp_keys[i]}_inventory, ' if i < cp_len - 1 else f'null_resource.{cp_keys[i]}_inventory'
+
+                add_depend = [f', null_resource.{x}_inventory' for x in cp_keys if x != cp_keys[i] and cloud_providers[x] and cp_keys.index(x) < i]
+                
+                if len(add_depend) >= 1:
+                    update = content[depends_idx][:-3] +''.join(add_depend) + ']'
+                    content[depends_idx] = update
+
+                for j in range(start_idx_module, end_idx_module):
+                    if '#' in content[j]:
+                        content[j] = content[j].replace('#', '')
+                
+                for k in range(start_idx_inventory, end_idx_inventory):
+                    if '#' in content[k]:
+                        content[k] = content[k].replace('#', '')
+
+            else: # Comment provider modules and null resources
+                for j in range(start_idx_module, end_idx_module):
+                    if '#' not in content[j]:
+                        content[j] = '#' + content[j]
+
+                for k in range(start_idx_inventory, end_idx_inventory):
+                    if '#' not in content[k]:
+                        content[k] = '#' + content[k]
+        
+        else:
+            if cloud_providers[cp_keys[i]]:
+                content[depends_idx] = f'  depends_on = [module.{cp_keys[i]}_k8s]'
             
-            # for k in range(start_idx_inventory, end_idx_inventory):
-            #     if '#' in content[k]:
-            #         content[k] = content[k].replace('#', '')
+            remove_comments(content)
 
-        # Comment provider modules and null resources
-        # else:
-        #     for j in range(start_idx_module, end_idx_module):
-        #         if '#' not in content[j]:
-        #             content[j] = '#' + content[j]
-
-        #     for k in range(start_idx_inventory, end_idx_inventory):
-        #         if '#' not in content[k]:
-        #             content[k] = '#' + content[k]
-
-    # write_to_file(main, content)
+    # content[null_depends_idx] += ']\n'
+    write_to_file(main, content)
 
 
 def update_outputs_tf():
     '''Purpose:'''
-    content = None
+    content = read_file(outputs)
     find = Template('output "$provider') #output "aws_ssh_commands" {
 
-    with open(output) as tf_file:
-        content = tf_file.readlines()
+    if build:
+        for i in range(0, cp_len):
+            find_r = re.compile('.*' + find.substitute(provider=cp_keys[i])  + '_ssh_commands" {\n')
+            start_idx = content.index((list(filter(find_r.match, content))[0]))
+            
+            try:
+                find_r_next = re.compile('.*' + find.substitute(provider=cp_keys[i + 1])  + '_ssh_commands" {\n')
+                end_idx = content.index((list(filter(find_r_next.match, content))[0])) - 1
+            except:
+                end_idx = len(content)
 
-    for i in range(0, cp_len):
-        find_r = re.compile('.*' + find.substitute(provider=cp_keys[i])  + '_ssh_commands" {\n')
-        start_idx = content.index((list(filter(find_r.match, content))[0]))
-        
-        try:
-            find_r_next = re.compile('.*' + find.substitute(provider=cp_keys[i + 1])  + '_ssh_commands" {\n')
-            end_idx = content.index((list(filter(find_r_next.match, content))[0])) - 1
-        except:
-            end_idx = len(content)
+            if cloud_providers[cp_keys[i]]:
+                for j in range(start_idx, end_idx):
+                    if '#' in content[j]:
+                        content[j] = content[j].replace('#', '')
 
-        if cloud_providers[cp_keys[i]]:
-            for j in range(start_idx, end_idx):
-                if '#' in content[j]:
-                    content[j] = content[j].replace('#', '')
-
-        else:
-            for j in range(start_idx, end_idx):
-                if '#' not in content[j]:
-                    content[j] = '#' + content[j]
-
-    write_to_file(output, content)
+            else:
+                for j in range(start_idx, end_idx):
+                    if '#' not in content[j]:
+                        content[j] = '#' + content[j]
+    else:
+        remove_comments(content)
+    
+    write_to_file(outputs, content)
 
 
 def confirm_updates():
@@ -223,41 +254,16 @@ def run_ansible():
     ]
 
     if build:
-        for i in range(0, len(commands)):
-            subprocess.call(commands[i])
+        subprocess.call(commands[0])
 
-
-def clean_up():
-    '''Purpose:'''
-    all_files = [versions, providers, main, output]
-
-    run_terraform()
-    run_ansible()
-
-    for each in all_files:
-        content = None
-
-        with open(each) as tf_file:
-            content = tf_file.readlines()
-
-        for i in range(0, len(content)):
-            if '#' in content[i] and content[i][:2] != '#!':
-                content[i] = content[i].replace('#', '')
-
-
-        write_to_file(each, content)
-    pass
 
 if __name__ == '__main__':
-    if build:
-        print(f'Using Terraform variables file {tfvars} to update versions.tf, providers.tf, main.tf, and outputs.tf')
-        read_cloud_providers()
-        # update_versions_tf()
-        # update_providers_tf()
-        update_main_tf()
-        # update_outputs_tf()
-        # confirm_updates()
-        # run_terraform()
-        # run_ansible()
-    else:
-        clean_up()
+    print(f'Using Terraform variables file {tfvars} to update versions.tf, providers.tf, main.tf, and outputs.tf')
+    read_cloud_providers()
+    update_versions_tf()
+    update_providers_tf()
+    update_main_tf()
+    update_outputs_tf()
+    confirm_updates()
+    # run_terraform()
+    # run_ansible()

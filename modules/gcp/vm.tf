@@ -53,5 +53,4 @@ resource "local_file" "k8s_private_ips" {
 %{endfor~}
     EOF
 EOT
-
 }
