@@ -31,6 +31,7 @@ def read_cloud_providers():
 
 
 def read_file(filename):
+    '''Purpose:'''
     lines = None
     
     with open(filename) as f:
@@ -40,11 +41,13 @@ def read_file(filename):
 
 
 def write_to_file(filename, content):
+    '''Purpose:'''
     with open(filename, 'w') as f:
         for line in content:
             f.write(line)
 
 def remove_comments(content):
+    '''Purpose:'''
     for i in range(0, len(content)):
         if '#' in content[i] and content[i][:2] != '#!':
             content[i] = content[i].replace('#', '')
@@ -121,10 +124,6 @@ def update_main_tf():
     find_module = Template('module "$provider')
     find_inventory = Template('resource "null_resource" "$provider')
     find_inventory_end = Template('depends_on = \[module.$provider')
-
-    # find_r_null_depends = re.compile('.*' + 'depends_on = \[\]\n') if build else re.compile('.*' + 'depends_on = \[null_resource')
-    # null_depends_idx = content.index((list(filter(find_r_null_depends.match, content))[0]))
-    # content[null_depends_idx] = content[null_depends_idx][:-2]
   
     # Adjust modules and null_resources based on cloud_providers
     for i in range(0, cp_len):
@@ -145,11 +144,9 @@ def update_main_tf():
             find_r_module_next = re.compile('.*' + '#! Add AWS hosts to Ansible inventory\n')
             end_idx_module = content.index((list(filter(find_r_module_next.match, content))[0])) - 1
 
-        if build:
-            # Removed commented lines & update dependencies for used modules and resources
-            if cloud_providers[cp_keys[i]]:
-                # content[null_depends_idx] += f'null_resource.{cp_keys[i]}_inventory, ' if i < cp_len - 1 else f'null_resource.{cp_keys[i]}_inventory'
-
+        if build: 
+    
+            if cloud_providers[cp_keys[i]]: # Remove commented lines & update dependencies for used modules and resources
                 add_depend = [f', null_resource.{x}_inventory' for x in cp_keys if x != cp_keys[i] and cloud_providers[x] and cp_keys.index(x) < i]
                 
                 if len(add_depend) >= 1:
@@ -174,7 +171,7 @@ def update_main_tf():
                         content[k] = '#' + content[k]
         
         else:
-            if cloud_providers[cp_keys[i]]:
+            if cloud_providers[cp_keys[i]]: # remove non provider related dependencies and comments
                 content[depends_idx] = f'  depends_on = [module.{cp_keys[i]}_k8s]\n'
             
             remove_comments(content)
@@ -183,6 +180,7 @@ def update_main_tf():
 
 
 def update_ansible_tf():
+    '''Purpose:'''
     content = read_file(ansible)
     update_depends = f'    depends_on = ['
     
@@ -244,7 +242,7 @@ def confirm_updates():
         exit()
 
 
-def run_terraform(): #terraform apply -auto-approve -var-file=local.tfvars
+def run_terraform():
     '''Purpose:'''
     commands = [
         ['terraform', 'init'],
@@ -274,7 +272,7 @@ def run_ansible():
 
 
 if __name__ == '__main__':
-    print(f'Using Terraform variables file {tfvars} to update versions.tf, providers.tf, main.tf, and outputs.tf')
+    print(f'Using Terraform variables file {tfvars} to update versions.tf, providers.tf, main.tf, ansible.tf, and outputs.tf')
     read_cloud_providers()
     update_versions_tf()
     update_providers_tf()
