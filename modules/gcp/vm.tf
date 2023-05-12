@@ -1,6 +1,6 @@
 resource "google_compute_address" "k8s" {
-  for_each  = var.vm_names
-  name      = each.value
+  for_each = var.vm_names
+  name     = each.value
 }
 
 resource "google_compute_instance" "k8s" {
@@ -19,7 +19,7 @@ resource "google_compute_instance" "k8s" {
     network = var.network
 
     access_config {
-        nat_ip = google_compute_address.k8s["${each.key}"].address
+      nat_ip = google_compute_address.k8s["${each.key}"].address
     }
   }
 

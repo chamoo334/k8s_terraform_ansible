@@ -46,8 +46,8 @@ gcp = {
     zone        = ""
     credentials = ""
   }
-  network      = ""
-  machine_type = ""
-  image        = ""
+  network        = ""
+  machine_type   = ""
+  image          = ""
   admin_username = ""
 }

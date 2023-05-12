@@ -14,7 +14,8 @@ cp_keys = list(cloud_providers.keys())
 cp_len = len(cloud_providers)
 versions = 'versions.tf'
 providers = './providers.tf'
-main = 'main.tf' 
+main = 'main.tf'
+ansible = 'ansible.tf'
 outputs = 'outputs.tf'
 
 def read_cloud_providers():
@@ -121,9 +122,9 @@ def update_main_tf():
     find_inventory = Template('resource "null_resource" "$provider')
     find_inventory_end = Template('depends_on = \[module.$provider')
 
-    find_r_null_depends = re.compile('.*' + 'depends_on = \[\]\n') if build else re.compile('.*' + 'depends_on = \[null_resource')
-    null_depends_idx = content.index((list(filter(find_r_null_depends.match, content))[0]))
-    content[null_depends_idx] = content[null_depends_idx][:-2]
+    # find_r_null_depends = re.compile('.*' + 'depends_on = \[\]\n') if build else re.compile('.*' + 'depends_on = \[null_resource')
+    # null_depends_idx = content.index((list(filter(find_r_null_depends.match, content))[0]))
+    # content[null_depends_idx] = content[null_depends_idx][:-2]
   
     # Adjust modules and null_resources based on cloud_providers
     for i in range(0, cp_len):
@@ -152,7 +153,7 @@ def update_main_tf():
                 add_depend = [f', null_resource.{x}_inventory' for x in cp_keys if x != cp_keys[i] and cloud_providers[x] and cp_keys.index(x) < i]
                 
                 if len(add_depend) >= 1:
-                    update = content[depends_idx][:-3] +''.join(add_depend) + ']'
+                    update = content[depends_idx][:-3] +''.join(add_depend) + ']\n'
                     content[depends_idx] = update
 
                 for j in range(start_idx_module, end_idx_module):
@@ -174,18 +175,33 @@ def update_main_tf():
         
         else:
             if cloud_providers[cp_keys[i]]:
-                content[depends_idx] = f'  depends_on = [module.{cp_keys[i]}_k8s]'
+                content[depends_idx] = f'  depends_on = [module.{cp_keys[i]}_k8s]\n'
             
             remove_comments(content)
 
-    # content[null_depends_idx] += ']\n'
     write_to_file(main, content)
+
+
+def update_ansible_tf():
+    content = read_file(ansible)
+    update_depends = f'    depends_on = ['
+    
+    for i in cp_keys:
+        if cloud_providers[i]:
+            update_depends += f'null_resource.{i}_inventory, '
+    
+    update_depends = update_depends[:-2] + ']\n' 
+    find_r_add_inventory = re.compile('.*' + '    depends_on = \[\]\n') if build else None
+    add_inventory_idx = content.index((list(filter(find_r_add_inventory.match, content))[0])) if build else content.index(update_depends)
+    content[add_inventory_idx] = update_depends if build else '    depends_on = []\n'
+
+    write_to_file(ansible, content)
 
 
 def update_outputs_tf():
     '''Purpose:'''
     content = read_file(outputs)
-    find = Template('output "$provider') #output "aws_ssh_commands" {
+    find = Template('output "$provider')
 
     if build:
         for i in range(0, cp_len):
@@ -263,7 +279,8 @@ if __name__ == '__main__':
     update_versions_tf()
     update_providers_tf()
     update_main_tf()
+    update_ansible_tf()
     update_outputs_tf()
     confirm_updates()
-    # run_terraform()
-    # run_ansible()
+    run_terraform()
+    run_ansible()

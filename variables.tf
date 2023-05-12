@@ -2,9 +2,9 @@
 variable "cloud_provider" {
   description = "Declare cloud provider/s to use"
   type = object({
-    aws = bool
+    aws   = bool
     azure = bool
-    gcp = bool 
+    gcp   = bool
   })
 }
 
@@ -246,9 +246,9 @@ variable "gcp" {
       zone        = string
       credentials = string
     })
-    network      = string
-    machine_type = string
-    image        = string
+    network        = string
+    machine_type   = string
+    image          = string
     admin_username = string
   })
 
@@ -259,9 +259,9 @@ variable "gcp" {
       zone        = ""
       credentials = ""
     }
-    network      = ""
-    machine_type = ""
-    image        = ""
+    network        = ""
+    machine_type   = ""
+    image          = ""
     admin_username = ""
   }
 }
