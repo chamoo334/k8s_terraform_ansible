@@ -11,10 +11,11 @@ variable "cloud_provider" {
 variable "project_id" {
   description = "Identifier for resources created in all cloud platforms."
   type        = string
+  default = "k8s"
 }
 
 variable "vm_names" {
-  description = "Hostname and tags of instances."
+  description = "Hostname and tags of instances. The first key-value pair will be assumed the controller node for Kubernetes configuration"
   type        = map(string)
   default = {
     "controller" = "k8s-controller"
@@ -24,7 +25,7 @@ variable "vm_names" {
 }
 
 variable "sg_controller" {
-  description = "Security group rules for cluster controller"
+  description = "Security group rules for cluster controller."
   type = map(object({
     start_port  = number
     end_port    = number
@@ -93,7 +94,7 @@ variable "sg_controller" {
 }
 
 variable "sg_worker" {
-  description = "Security group rules for cluster worker nodes"
+  description = "Security group rules for cluster worker nodes."
   type = map(object({
     start_port  = number
     end_port    = number
@@ -142,7 +143,7 @@ variable "sg_worker" {
 
 # AWS Configuration
 variable "aws" {
-  description = "Variables to configure AWS"
+  description = "Variables to configure AWS."
   type = object({
     creds = object({
       region     = string
@@ -155,11 +156,11 @@ variable "aws" {
 
   default = {
     creds = {
-      region     = ""
+      region     = "us-east-1"
       access_key = ""
       secret_key = ""
     }
-    ami_id        = ""
+    ami_id        = "ami-06e46074ae430fba6"
     instance_type = ""
   }
 }
@@ -195,15 +196,15 @@ variable "azure" {
       client_secret   = ""
     }
     resource_group_location         = ""
-    address_space                   = [""]
+    address_space                   = ["10.0.0.0/16", "10.0.1.0/24", "10.0.2.0/24"]
     vm_size                         = ""
     admin_username                  = ""
     disable_password_authentication = false
     source_image = {
-      publisher = ""
-      offer     = ""
-      sku       = ""
-      version   = ""
+      publisher = "OpenLogic"
+      offer     = "CentOS"
+      sku       = "8_5-gen2"
+      version   = "latest"
     }
   }
 }
@@ -233,7 +234,7 @@ variable "gcp" {
     }
     network        = ""
     machine_type   = ""
-    image          = ""
+    image          = "centos-cloud/centos-stream-8"
     admin_username = ""
   }
 }

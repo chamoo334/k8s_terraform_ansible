@@ -1,6 +1,5 @@
 #! Create Kubernetes cluster in AWS
 module "aws_k8s" {
-  count                     = var.cloud_provider.aws ? 1 : 0
   source                    = "./modules/aws"
   ami_id                    = var.aws.ami_id
   ec2_names                 = var.vm_names
@@ -13,7 +12,6 @@ module "aws_k8s" {
 
 #! Create Kubernetes cluster in Azure
 module "azure_k8s" {
-  count                           = var.cloud_provider.azure ? 1 : 0
   source                          = "./modules/azure"
   resource_group_name             = var.project_id
   resource_group_location         = var.azure.resource_group_location
@@ -31,7 +29,6 @@ module "azure_k8s" {
 
 #! Create Kubernetes cluster in GCP
 module "gcp_k8s" {
-  count          = var.cloud_provider.gcp ? 1 : 0
   source         = "./modules/gcp"
   vm_names       = var.vm_names
   ssh_key_name   = var.project_id
@@ -51,15 +48,15 @@ cat <<EOF >> ./ansible/inventory.yaml
       vars:
         ansible_port: 22
         ansible_user: ec2-user
-        ansible_ssh_private_key_file: ${module.aws_k8s[0].private_key_file}
+        ansible_ssh_private_key_file: ${module.aws_k8s.private_key_file}
       hosts:
         aws_controller:
-          ansible_host: ${module.aws_k8s[0].controller_public_ip}
+          ansible_host: ${module.aws_k8s.controller_public_ip}
       children:
         aws_workers:
-          hosts:%{for node in module.aws_k8s[0].workers}
+          hosts:%{for node in module.aws_k8s.workers}
             aws_${node}:
-              ansible_host: ${module.aws_k8s[0].worker_public_ips[node]}%{endfor}
+              ansible_host: ${module.aws_k8s.worker_public_ips[node]}%{endfor}
 EOF
 sed -i '' '/name: Configure hosts on AWS/r ./ansible/aws_hosts.txt' ./ansible/roles/k8s/tasks/main.yaml
 EOT
@@ -77,15 +74,15 @@ cat <<EOF >> ./ansible/inventory.yaml
       vars:
         ansible_port: 22
         ansible_user: ${var.azure.admin_username}
-        ansible_ssh_private_key_file: ${module.azure_k8s[0].private_key_file}
+        ansible_ssh_private_key_file: ${module.azure_k8s.private_key_file}
       hosts:
         azure_controller:
-          ansible_host: ${module.azure_k8s[0].controller_public_ip}
+          ansible_host: ${module.azure_k8s.controller_public_ip}
       children:
         azure_workers:
-          hosts:%{for node in module.azure_k8s[0].workers}
+          hosts:%{for node in module.azure_k8s.workers}
             azure_${node}:
-              ansible_host: ${module.azure_k8s[0].worker_public_ips[node]}%{endfor}
+              ansible_host: ${module.azure_k8s.worker_public_ips[node]}%{endfor}
 EOF
 sed -i '' '/name: Configure hosts on Azure/r ./ansible/azure_hosts.txt' ./ansible/roles/k8s/tasks/main.yaml
 EOT
@@ -103,15 +100,15 @@ cat <<EOF >> ./ansible/inventory.yaml
       vars:
         ansible_port: 22
         ansible_user: ${var.gcp.admin_username}
-        ansible_ssh_private_key_file: ${module.gcp_k8s[0].private_key_file}
+        ansible_ssh_private_key_file: ${module.gcp_k8s.private_key_file}
       hosts:
         gcp_controller:
-          ansible_host: ${module.gcp_k8s[0].controller_public_ip}
+          ansible_host: ${module.gcp_k8s.controller_public_ip}
       children:
         gcp_workers:
-          hosts:%{for node in module.gcp_k8s[0].workers}
+          hosts:%{for node in module.gcp_k8s.workers}
             gcp_${node}:
-              ansible_host: ${module.gcp_k8s[0].worker_public_ips[node]}%{endfor}
+              ansible_host: ${module.gcp_k8s.worker_public_ips[node]}%{endfor}
 EOF
 sed -i '' '/name: Configure hosts on GCP/r ./ansible/gcp_hosts.txt' ./ansible/roles/k8s/tasks/main.yaml
 EOT

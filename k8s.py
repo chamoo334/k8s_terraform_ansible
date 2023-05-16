@@ -271,8 +271,7 @@ def run_ansible():
         subprocess.call(commands[0])
 
 
-if __name__ == '__main__':
-    print(f'Using Terraform variables file {tfvars} to update versions.tf, providers.tf, main.tf, ansible.tf, and outputs.tf')
+def main():
     read_cloud_providers()
     update_versions_tf()
     update_providers_tf()
@@ -282,3 +281,7 @@ if __name__ == '__main__':
     confirm_updates()
     run_terraform()
     run_ansible()
+
+if __name__ == '__main__':
+    print(f'Using Terraform variables file {tfvars} to update versions.tf, providers.tf, main.tf, ansible.tf, and outputs.tf')
+    main()

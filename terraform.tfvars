@@ -4,7 +4,6 @@ cloud_provider = {
   azure = false
   gcp   = false
 }
-project_id = ""
 
 # AWS variables
 aws = {
