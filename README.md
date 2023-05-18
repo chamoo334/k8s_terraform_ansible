@@ -21,7 +21,7 @@ Kubernetes Cluster bootstrapped via Terraform and Ansible in AWS, Azure, and/or 
       1. Ansible configuration tested on CentOS 8_5
       2. Kubernetes requires at least 2 cores
    6. `gcp`: required credentials, network, and machine data.
-      1. Ansible configuration tested on CentOS 8_5
+      1. Ansible configuration tested on CentOS stream 8
       2. Kubernetes requires at least 2 cores
 2. Initialize Terraform project and apply: `python3 k8s.py terraform.tfvars init`
 3. Upgrade and apply Terraform changes: `python3 k8s.py terraform.tfvars upgrade`
@@ -39,9 +39,7 @@ Kubernetes Cluster bootstrapped via Terraform and Ansible in AWS, Azure, and/or 
 
 ### AWS
 - [key pair](./modules/aws/keypair.tf)
-- [security groups](./modules/aws/security_group.tf)
-  - k8s controller security group (var.sg_k8s_controller_ingress)
-  - worker security groups (var.sg_k8s_worker_ingress)
+- [2 security groups](./modules/aws/security_group.tf)
 - [EC2 instances](./modules/aws/ec2.tf)
   - default is 3
     - controller
