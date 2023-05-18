@@ -1,5 +1,5 @@
 # bootstrap_k8s_terraform
-Kubernetes Cluster bootstrapped via Terraform and Ansible in AWS, Azure, and/or GCP. <br>
+Kubernetes cluster provisioning and configuration in AWS, Azure, and/or GCP. <br>
 The resource tls_private_key is stored unencrypted in state file. **NOT FOR PRODUCTION.**
 
 ## Requirements
