@@ -261,16 +261,6 @@ def run_terraform():
         subprocess.call(commands[-1])
 
 
-def run_ansible():
-    '''Purpose:'''
-    commands = [
-        ['ansible-playbook', '-i=./ansible/inventory.yaml', './ansible/playbook.yaml', '-T=720'], # > ./ansible/plays.log
-    ]
-
-    if build:
-        subprocess.call(commands[0])
-
-
 def main():
     read_cloud_providers()
     update_versions_tf()
@@ -280,7 +270,7 @@ def main():
     update_outputs_tf()
     confirm_updates()
     run_terraform()
-    run_ansible()
+
 
 if __name__ == '__main__':
     print(f'Using Terraform variables file {tfvars} to update versions.tf, providers.tf, main.tf, ansible.tf, and outputs.tf')

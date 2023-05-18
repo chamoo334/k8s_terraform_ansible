@@ -27,6 +27,63 @@ Kubernetes Cluster bootstrapped via Terraform and Ansible in AWS, Azure, and/or 
 3. Upgrade and apply Terraform changes: `python3 k8s.py terraform.tfvars upgrade`
 4. Destroy Terraform project: `python3 k8s.py terraform.tfvars`
 
+## Overview
+| **Files**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | **Implementation**                                            |
+|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
+| <code> . <br>├── README ├── ansible/ │   ├── inventory.yaml │   ├── playbook.yaml │   └── roles/ │       └── k8s/ │           ├── meta/ │           │   └── main.yaml │           ├── tasks/ │           │   └── main.yaml │           └── vars/ │               └── main.yaml ├── ansble.tf ├── k8s.py ├── locals.tf ├── main.tf ├── modules/ │   ├── aws/ │   │   ├── ec2.tf │   │   ├── keypair.tf │   │   ├── locals.tf │   │   ├── outputs.tf │   │   ├── security_group.tf │   │   └── variables.tf │   ├── azure/ │   │   ├── locals.tf │   │   ├── network.tf │   │   ├── network_security_group.tf │   │   ├── outputs.tf │   │   ├── resource_group.tf │   │   ├── sshkey.tf │   │   ├── variables.tf │   │   └── vm.tf │   └── gcp/ │       ├── firewalls.tf │       ├── locals.tf │       ├── outputs.tf │       ├── sshkey.tf │       ├── variables.tf │       └── vm.tf ├── outputs.tf ├── providers.tf ├── terraform.tfvars ├── variables.tf └── versions.tf </code> | ![Visual diagram of tools implementation.](./misc/visual.png) |
+
+
+
+
+```
+.
+├── README
+├── ansible/
+│   ├── inventory.yaml
+│   ├── playbook.yaml
+│   └── roles/
+│       └── k8s/
+│           ├── meta/
+│           │   └── main.yaml
+│           ├── tasks/
+│           │   └── main.yaml
+│           └── vars/
+│               └── main.yaml
+├── ansble.tf
+├── k8s.py
+├── locals.tf
+├── main.tf
+├── modules/
+│   ├── aws/
+│   │   ├── ec2.tf
+│   │   ├── keypair.tf
+│   │   ├── locals.tf
+│   │   ├── outputs.tf
+│   │   ├── security_group.tf
+│   │   └── variables.tf
+│   ├── azure/
+│   │   ├── locals.tf
+│   │   ├── network.tf
+│   │   ├── network_security_group.tf
+│   │   ├── outputs.tf
+│   │   ├── resource_group.tf
+│   │   ├── sshkey.tf
+│   │   ├── variables.tf
+│   │   └── vm.tf
+│   └── gcp/
+│       ├── firewalls.tf
+│       ├── locals.tf
+│       ├── outputs.tf
+│       ├── sshkey.tf
+│       ├── variables.tf
+│       └── vm.tf
+├── outputs.tf
+├── providers.tf
+├── terraform.tfvars
+├── variables.tf
+└── versions.tf
+```
+![Visual diagram of tools implementation.](./misc/visual.png)
 ## Resources Created
 - Each cloud provider module used will create:
   - ./ansible/<cloud_provider>_hosts.txt

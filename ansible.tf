@@ -62,3 +62,12 @@ resource "null_resource" "clean_inventory" {
 
   depends_on = [null_resource.add_inventory_groups, null_resource.update_tasks]
 }
+
+resource "null_resource" "run_ansible" {
+  
+  provisioner "local-exec" {
+    command = "ansible-playbook -i=./ansible/inventory.yaml ./ansible/playbook.yaml -T=720"
+  }
+
+  depends_on = [null_resource.add_inventory_groups, null_resource.update_tasks]
+}
