@@ -30,60 +30,8 @@ Kubernetes Cluster bootstrapped via Terraform and Ansible in AWS, Azure, and/or 
 ## Overview
 | **Files**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | **Implementation**                                            |
 |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
-| <code> . <br>├── README ├── ansible/ │   ├── inventory.yaml │   ├── playbook.yaml │   └── roles/ │       └── k8s/ │           ├── meta/ │           │   └── main.yaml │           ├── tasks/ │           │   └── main.yaml │           └── vars/ │               └── main.yaml ├── ansble.tf ├── k8s.py ├── locals.tf ├── main.tf ├── modules/ │   ├── aws/ │   │   ├── ec2.tf │   │   ├── keypair.tf │   │   ├── locals.tf │   │   ├── outputs.tf │   │   ├── security_group.tf │   │   └── variables.tf │   ├── azure/ │   │   ├── locals.tf │   │   ├── network.tf │   │   ├── network_security_group.tf │   │   ├── outputs.tf │   │   ├── resource_group.tf │   │   ├── sshkey.tf │   │   ├── variables.tf │   │   └── vm.tf │   └── gcp/ │       ├── firewalls.tf │       ├── locals.tf │       ├── outputs.tf │       ├── sshkey.tf │       ├── variables.tf │       └── vm.tf ├── outputs.tf ├── providers.tf ├── terraform.tfvars ├── variables.tf └── versions.tf </code> | ![Visual diagram of tools implementation.](./misc/visual.png) |
+| <code>.<br>├──&nbsp;README<br>├──&nbsp;ansible/<br>│&nbsp;&nbsp;&nbsp;├──&nbsp;inventory.yaml<br>│&nbsp;&nbsp;&nbsp;├──&nbsp;playbook.yaml<br>│&nbsp;&nbsp;&nbsp;└──&nbsp;roles/<br>│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──&nbsp;k8s/<br>│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├──&nbsp;meta/<br>│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└──&nbsp;main.yaml<br>│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├──&nbsp;tasks/<br>│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└──&nbsp;main.yaml<br>│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──&nbsp;vars/<br>│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──&nbsp;main.yaml<br>├──&nbsp;ansble.tf<br>├──&nbsp;k8s.py<br>├──&nbsp;locals.tf<br>├──&nbsp;main.tf<br>├──&nbsp;modules/<br>│&nbsp;&nbsp;&nbsp;├──&nbsp;aws/<br>│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├──&nbsp;ec2.tf<br>│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├──&nbsp;keypair.tf<br>│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├──&nbsp;locals.tf<br>│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├──&nbsp;outputs.tf<br>│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├──&nbsp;security_group.tf<br>│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└──&nbsp;variables.tf<br>│&nbsp;&nbsp;&nbsp;├──&nbsp;azure/<br>│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├──&nbsp;locals.tf<br>│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├──&nbsp;network.tf<br>│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├──&nbsp;network_security_group.tf<br>│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├──&nbsp;outputs.tf<br>│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├──&nbsp;resource_group.tf<br>│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├──&nbsp;sshkey.tf<br>│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├──&nbsp;variables.tf<br>│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└──&nbsp;vm.tf<br>│&nbsp;&nbsp;&nbsp;└──&nbsp;gcp/<br>│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├──&nbsp;firewalls.tf<br>│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├──&nbsp;locals.tf<br>│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├──&nbsp;outputs.tf<br>│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├──&nbsp;sshkey.tf<br>│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├──&nbsp;variables.tf<br>│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──&nbsp;vm.tf<br>├──&nbsp;outputs.tf<br>├──&nbsp;providers.tf<br>├──&nbsp;terraform.tfvars<br>├──&nbsp;variables.tf<br>└──&nbsp;versions.tf<br></code> | ![Visual diagram of tools implementation.](./misc/visual.png) |
 
-
-
-
-```
-.
-├── README
-├── ansible/
-│   ├── inventory.yaml
-│   ├── playbook.yaml
-│   └── roles/
-│       └── k8s/
-│           ├── meta/
-│           │   └── main.yaml
-│           ├── tasks/
-│           │   └── main.yaml
-│           └── vars/
-│               └── main.yaml
-├── ansble.tf
-├── k8s.py
-├── locals.tf
-├── main.tf
-├── modules/
-│   ├── aws/
-│   │   ├── ec2.tf
-│   │   ├── keypair.tf
-│   │   ├── locals.tf
-│   │   ├── outputs.tf
-│   │   ├── security_group.tf
-│   │   └── variables.tf
-│   ├── azure/
-│   │   ├── locals.tf
-│   │   ├── network.tf
-│   │   ├── network_security_group.tf
-│   │   ├── outputs.tf
-│   │   ├── resource_group.tf
-│   │   ├── sshkey.tf
-│   │   ├── variables.tf
-│   │   └── vm.tf
-│   └── gcp/
-│       ├── firewalls.tf
-│       ├── locals.tf
-│       ├── outputs.tf
-│       ├── sshkey.tf
-│       ├── variables.tf
-│       └── vm.tf
-├── outputs.tf
-├── providers.tf
-├── terraform.tfvars
-├── variables.tf
-└── versions.tf
-```
-![Visual diagram of tools implementation.](./misc/visual.png)
 ## Resources Created
 - Each cloud provider module used will create:
   - ./ansible/<cloud_provider>_hosts.txt
