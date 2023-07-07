@@ -33,3 +33,4 @@ override.tf.json
 scripts/aws/aws.yaml
 venv/
 .vscode/
+*.DS_Store*
