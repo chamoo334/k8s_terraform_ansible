@@ -1,6 +1,6 @@
 # bootstrap_k8s_terraform
-Kubernetes Cluster bootstrapped via Terraform and Ansible in AWS, Azure, and/or GCP. <br>
-**The resource tls_private_key is stored unencrypted in state file. Not for production.**
+Kubernetes cluster provisioning and configuration in AWS, Azure, and/or GCP. <br>
+The resource tls_private_key is stored unencrypted in state file. **NOT FOR PRODUCTION.**
 
 ## Requirements
 - Python 3
@@ -8,7 +8,12 @@ Kubernetes Cluster bootstrapped via Terraform and Ansible in AWS, Azure, and/or 
 - Ansible CLI
 - Preferred Cloud Credentials
 
-## Deployment Instructions
+## Overview
+| **Files**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | **Implementation**                                            |
+|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
+| ![Visual tree of directories and content.](./misc/file_tree.png) | ![Visual diagram of tools implementation.](./misc/visual.png) |
+
+## Quick Start
 1. Update [terraform.tfvars](./terraform.tfvars).
    1. `cloud_provider`: provides k8s.py with information to automate commenting of modules
    2. `project_id`: string to be used as an identifier in provisioned cloud resources.
@@ -21,16 +26,11 @@ Kubernetes Cluster bootstrapped via Terraform and Ansible in AWS, Azure, and/or 
       1. Ansible configuration tested on CentOS 8_5
       2. Kubernetes requires at least 2 cores
    6. `gcp`: required credentials, network, and machine data.
-      1. Ansible configuration tested on CentOS 8_5
+      1. Ansible configuration tested on CentOS stream 8
       2. Kubernetes requires at least 2 cores
 2. Initialize Terraform project and apply: `python3 k8s.py terraform.tfvars init`
 3. Upgrade and apply Terraform changes: `python3 k8s.py terraform.tfvars upgrade`
 4. Destroy Terraform project: `python3 k8s.py terraform.tfvars`
-
-## Overview
-| **Files**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | **Implementation**                                            |
-|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
-| ![Visual tree of directories and content.](./misc/file_tree.png) | ![Visual diagram of tools implementation.](./misc/visual.png) |
 
 ## Resources Created
 - Each cloud provider module used will create:
@@ -39,9 +39,7 @@ Kubernetes Cluster bootstrapped via Terraform and Ansible in AWS, Azure, and/or 
 
 ### AWS
 - [key pair](./modules/aws/keypair.tf)
-- [security groups](./modules/aws/security_group.tf)
-  - k8s controller security group (var.sg_k8s_controller_ingress)
-  - worker security groups (var.sg_k8s_worker_ingress)
+- [2 security groups](./modules/aws/security_group.tf)
 - [EC2 instances](./modules/aws/ec2.tf)
   - default is 3
     - controller
