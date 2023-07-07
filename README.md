@@ -1,4 +1,4 @@
-# bootstrap_k8s_terraform
+# k8s_terraform_ansible
 Kubernetes cluster provisioning and configuration in AWS, Azure, and/or GCP. <br>
 The resource tls_private_key is stored unencrypted in state file. **NOT FOR PRODUCTION.**
 
